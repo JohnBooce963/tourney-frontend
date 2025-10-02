@@ -1,0 +1,95 @@
+<div>
+<app-header-turn (draftEnded)="onDraftEnd()"></app-header-turn>
+<div class="container">
+  <div class="left-panel">
+    <div class="input-box">
+      <input
+        type="text"
+        [(ngModel)]="searchText"
+        placeholder="Search operators..."
+        class="search-box"
+      />
+    </div>
+  <div class="image-grid">
+    <div [class.disabled]="picked.includes(operator.char_alt_name) || bannedOps.includes(operator.char_alt_name)" class="image-container" *ngFor="let operator of filteredOperators()">
+      <img class="images" (click)="chooseOperator(operator)" [src]="'data:image/png;base64,' + operator.char_img" alt="{{ operator.char_name }}"/>
+    </div>
+  </div>
+  </div>
+  <div class="middle-panel">
+    <p>Squad</p>
+    <!-- <select [(ngModel)]="selectedTheme" (change)="fetchSquad(selectedTheme)">
+      <option *ngFor="let theme of themes" [value]="theme.value"> 
+        {{ theme.label }}
+      </option>
+    </select> -->
+    <p></p>
+    <div class="image-squad-grid">
+    <div [class.disabled]="bannedSquad.includes(squad.squad_name)" class="image-container" *ngFor="let squad of squads" >
+      <img class="images-squad" [src]="'data:image/png;base64,' + squad.squad_img" alt="{{ squad.squad_name }}" (click)="chooseSquad(squad)"/>
+    </div>
+    </div>
+    <p></p>
+    <!-- <p>Chat box</p>
+    <app-chatbox></app-chatbox> -->
+  </div>
+  <div class="right-panel">
+
+    <!-- <p>Ban Squad</p> -->
+    <div class="placeholder">
+      <p>Player 1</p>
+      <p>Player 2</p>
+      <!-- <div *ngFor="let slot of slots"
+        [class.active]="isActive(slot)"
+        
+        [class.glowing]="isActive(slot)"
+        (click)="onChoose(slot)">
+        {{ slot }}
+      </div> -->
+      <div *ngFor="let slot of slots"
+        [class.active]="isActive(slot)"
+        [class.glowing]="isActive(slot)"
+        [class.banned-slot]="slot.startsWith('Ban') && getSlotContent(slot)"
+        >
+        
+      <ng-container *ngIf="getSlotContent(slot) as content; else placeholderSlot">
+        <img class="right-panel-img"
+            [src]="'data:image/png;base64,' + content.img"
+            [alt]="content.name" />
+        <!-- <p>{{ content.name}}</p> -->
+      </ng-container>
+
+      <ng-template #placeholderSlot>
+      <!-- If this slot is active and placeholder exists -->
+        <ng-container *ngIf="isActive(slot) && (currentOp || currentSquad); else textSlot">
+          <ng-container *ngIf="getPlaceHolderContent(currentSquad) as content; else checkOp">
+              <img class="right-panel-img placeholder-img"
+                  [src]="'data:image/png;base64,' + content.img"
+                  [alt]="content.name" />
+          </ng-container>
+          <ng-template #checkOp>
+            <ng-container *ngIf=" getPlaceHolderContent(currentOp) as content; else textSlot">
+              <img class="right-panel-img placeholder-img"
+                  [src]="'data:image/png;base64,' + content.img"
+                  [alt]="content.name" />
+            </ng-container>
+          </ng-template>
+        </ng-container>
+      </ng-template>
+
+      <ng-template #textSlot>
+        {{ slot }}
+      </ng-template>
+    </div>
+    </div>
+
+    <div class="button-container">
+      <button class="choose"
+              (click)="onChoose()">
+        Choose
+      </button>
+    </div>
+
+  </div>
+</div>
+</div>

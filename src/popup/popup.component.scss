@@ -1,0 +1,45 @@
+h2{
+    color: white;
+}
+
+.warn-theme {
+    background-color: rgb(231, 178, 2) !important;
+    color: white !important;
+}
+
+.error-theme {
+    background-color: red !important;
+    color: white !important;
+}
+
+.success-theme{
+    background-color: green !important;
+    color: white !important; 
+}
+
+mat-card-header{
+  display: flex;
+  justify-content: center;   /* center horizontally */
+  align-items: center;       /* center vertically */
+  gap: 8px;
+}
+
+mat-card{
+    max-width: 700px;  /* or 60% */
+    width: 100%;
+    text-align: center;
+    margin: 0 auto; 
+}
+
+mat-form-field{
+    display: block;
+}
+
+mat-icon{
+    color: black;
+}
+
+p{
+    padding: 1rem;
+    color: black;
+}

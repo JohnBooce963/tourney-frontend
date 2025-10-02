@@ -1,0 +1,16 @@
+<mat-card>
+    <mat-card-header>
+        <h2>Enter Your Name</h2>
+    </mat-card-header>
+    <mat-card-content>
+        <mat-form-field>
+            <mat-label>Name</mat-label>
+            <input matInput placeholder="Guest" name="name" [(ngModel)]="name" required>
+            <mat-icon matSuffix>account_circle</mat-icon>
+        </mat-form-field>
+        <div class="button-row">
+            <button mat-raised-button (click)="onSubmit()" color="primary">Submit</button>
+            <button mat-raised-button (click)="onCancel()" color="warn">Cancel</button>
+        </div>
+    </mat-card-content>
+</mat-card>

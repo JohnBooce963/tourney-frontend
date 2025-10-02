@@ -1,0 +1,217 @@
+mat-card{
+    max-width: 800px;
+    height: 680px;
+    overflow: hidden;
+    margin: 2em auto;
+    text-align: center;
+    background-color: #1a1a1a;
+
+
+    // border: 1px solid yellow;
+    // border-radius: 7px;
+    // box-shadow: 0 0 10px yellow;
+    
+}
+
+.lobby-no-content{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%; 
+  width: 100%;
+  border: 1px dashed yellow;
+  border-radius: 7px;
+}
+
+.lobby-content{
+    // display: block;
+    // width: 100%;
+    margin: 15px;
+    padding: 10px;
+    border: 1px solid yellow;
+    border-radius: 7px;
+    height: 100px;
+    // justify-content: center;
+    // align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.lobby-overlay {
+  display: flex;
+  justify-content: space-between; /* labels on left, button on right */
+  align-items: center;
+  position: relative;
+  padding: 12px;
+  z-index: 2;
+}
+
+.lobby-overlay mat-label {
+  display: flex;
+  align-items: center; /* icon + text inline */
+  color: white;       /* text color */
+  font-size: 14px;
+
+}
+
+.lobby-info {
+  display: flex;
+  flex-direction: column; /* stack labels vertically */
+  gap: 6px;
+}
+
+.lobby-overlay mat-icon {
+  margin-right: 6px;
+}
+
+.lobby-content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6); /* transparency (0=clear, 1=solid) */
+  z-index: 1;
+}
+
+button{
+    max-width: 250px;
+}
+
+.player-info button{
+    width: 175px;
+}
+
+.button-row{
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 45px 0 45px;
+    gap: 8px;
+}
+
+.success-theme{
+    background-color: green !important;
+    color: white !important; 
+}
+
+.start-draft{
+  display: flex;
+  justify-content: center;
+  padding-top: 15px;
+}
+
+h1{
+    color: yellow;
+    padding-top: 10px; 
+}
+
+h2{
+    color: yellow;
+    display: flex;
+    padding-left: 30px;
+}
+
+h3{
+    color: yellow;
+    font-size: 20px;
+    padding: 20px 0px 20px 0px;
+}
+
+mat-icon{
+    color: black
+}
+
+mat-card-header{
+    display: block;
+    justify-content: center;
+}
+
+
+
+mat-form-field{
+    display: block;
+}
+
+mat-label{
+    color: yellow;
+}
+
+.player-content{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 30px;
+    // border: 1px solid white;
+}
+
+.player-info{
+    display: block;
+    justify-content: center;
+    margin: 15px;
+    // border: 1px solid white;
+}
+
+.player-info mat-icon{
+    color: white;
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+}
+
+mat-card-content{
+    display: block;
+    justify-content: center;
+    overflow-y: auto;
+    border: 1px solid yellow;
+    border-radius: 7px;
+    margin: 15px 45px 0 45px;
+    height: 450px; 
+}
+
+.start-draft{
+  display: flex;
+  justify-self: center;
+}
+
+button:disabled {
+  background-color: #555 !important; /* grey */
+  color: rgba(0, 0, 0, 0.507) !important;            /* light grey text */
+  opacity: 1 !important;             /* prevent dimming */
+}
+
+p{
+    color: yellow;
+    padding-bottom: 5px;
+    font-size: 16px;
+}
+
+p:hover{
+    cursor: pointer;
+}
+
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent; /* make scrollbar transparent */
+}
+
+.theme-1 {
+  background-image: url('/assets/themes/theme1.png');
+  background-size: cover;
+  background-position: 30% 20%;
+}
+
+.theme-2 {
+  background-image: url('/assets/themes/theme2.png');
+  background-size: cover ;      /* zoom image */
+  background-position: 20% 30%;
+}
+
+.theme-3 {
+  background-image: url('/assets/themes/theme3.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.theme-4 {
+  background-image: url('/assets/themes/theme4.png');
+  background-size: cover;
+  background-position: center;
+}

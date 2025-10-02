@@ -1,0 +1,50 @@
+<mat-card>
+<div class="button-row">
+    <button mat-raised-button color="accent" (click)="leaveLobby()"><mat-icon>exit_to_app</mat-icon>Leave Lobby</button>
+    <button mat-raised-button color="primary" (click)="flipCoin()" [disabled]="isFlipping" class="coin-button">
+      <mat-icon class="material-symbols-outlined" style="color: white;">
+      toll
+      </mat-icon>
+      Flip a Coin
+    </button>
+    <button mat-raised-button color="primary" (click)="startGame()" *ngIf="ready"><mat-icon style="color: white;">cancel</mat-icon>Start Game</button>
+    <button mat-raised-button color="warn" (click)="deleteLobby()"><mat-icon style="color: white;">cancel</mat-icon>Delete Lobby</button>
+  </div>
+<mat-card-content>
+  <mat-card-header>
+    <h1>Lobby Name: {{ lobby?.name }}</h1>
+    <h2>Theme: {{ lobby?.theme }}</h2>
+  </mat-card-header>
+  <div class="player-content">
+    <div class="player-info">
+    <p>Player 1</p>
+    <mat-icon>account_circle</mat-icon>
+    <h3> {{ lobby?.players?.[1] || "Empty" }}</h3>
+    <button mat-raised-button color="primary" (click)="join(1)" [disabled]="lobby?.players?.[1] || playerSlot === '2'">Join as Player 1</button>
+    <button mat-raised-button color="accent" (click)="cancelRole()" [disabled]="!playerSlot || playerSlot === '2'">Cancel Role</button>
+    </div>
+    <span class="material-symbols-outlined" style="font-size: 48px;">
+    swords
+    </span>
+    <div class="player-info">
+    <p>Player 2</p>
+    <mat-icon>account_circle</mat-icon>
+    <h3>{{ lobby?.players?.[2] || "Empty" }}</h3>
+    <button mat-raised-button color="primary" (click)="join(2)" [disabled]="lobby?.players?.[2] || playerSlot === '1'">Join as Player 2</button>
+    <button mat-raised-button color="accent" (click)="cancelRole()" [disabled]="!playerSlot || playerSlot === '1'">Cancel Role</button>
+    </div>
+  </div>
+
+ 
+</mat-card-content>
+  <div class="start-draft">
+    <button mat-raised-button class="success-theme" (click)="startGame()" [disabled]="lobby?.players?.[1] == null || lobby?.players?.[2] == null">
+      <mat-icon class="material-symbols-outlined" style=" padding-top: 1px;">
+        play_circle
+      </mat-icon>
+      Start Game
+    </button>
+  </div>
+
+</mat-card>
+

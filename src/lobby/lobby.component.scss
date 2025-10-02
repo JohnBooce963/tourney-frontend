@@ -1,0 +1,158 @@
+mat-card{
+    max-width: 800px;
+    height: 680px;
+    overflow: hidden;
+    margin: 2em auto;
+    text-align: center;
+    background-color: #1a1a1a;
+    border: 1px solid yellow;
+    border-radius: 7px;
+    box-shadow: 0 0 10px yellow;
+    
+}
+
+.lobby-no-content{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%; 
+  width: 100%;
+  border: 1px dashed yellow;
+  border-radius: 7px;
+}
+
+.lobby-content{
+    // display: block;
+    // width: 100%;
+    margin: 15px;
+    padding: 10px;
+    border: 1px solid yellow;
+    border-radius: 7px;
+    height: 100px;
+    // justify-content: center;
+    // align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.lobby-overlay {
+  display: flex;
+  justify-content: space-between; /* labels on left, button on right */
+  align-items: center;
+  position: relative;
+  padding: 12px;
+  z-index: 2;
+}
+
+.lobby-overlay mat-label {
+  display: flex;
+  align-items: center; /* icon + text inline */
+  color: white;       /* text color */
+  font-size: 14px;
+
+}
+
+.lobby-info {
+  display: flex;
+  flex-direction: column; /* stack labels vertically */
+  gap: 6px;
+}
+
+.lobby-overlay mat-icon {
+  margin-right: 6px;
+}
+
+.lobby-content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6); /* transparency (0=clear, 1=solid) */
+  z-index: 1;
+}
+
+button{
+    max-width: 200px;
+}
+
+.button-row{
+    display: flex;
+    margin: 30px;
+    gap: 8px;
+}
+
+h1{
+    color: yellow;
+    padding-top: 10px; 
+}
+
+h2{
+    color: yellow;
+    display: flex;
+    padding-left: 30px;
+}
+
+h3{
+    color: yellow;
+}
+
+mat-icon{
+    color: black
+}
+
+mat-card-header{
+    justify-content: center;
+}
+
+mat-form-field{
+    display: block;
+}
+
+mat-label{
+    color: yellow;
+}
+
+mat-card-content{
+    overflow-y: auto;
+    // border: 1px dashed yellow;
+    // border-radius: 7px;
+    margin: 0px 15px 15px 15px;
+    height: 430px; 
+}
+
+p{
+    padding: 1rem;
+    color: yellow;
+}
+
+p:hover{
+    cursor: pointer;
+}
+
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent; /* make scrollbar transparent */
+}
+
+.theme-1 {
+  background-image: url('/assets/themes/theme1.png');
+  background-size: cover;
+  background-position: 30% 20%;
+}
+
+.theme-2 {
+  background-image: url('/assets/themes/theme2.png');
+  background-size: cover ;      /* zoom image */
+  background-position: 20% 30%;
+}
+
+.theme-3 {
+  background-image: url('/assets/themes/theme3.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.theme-4 {
+  background-image: url('/assets/themes/theme4.png');
+  background-size: cover;
+  background-position: center;
+}

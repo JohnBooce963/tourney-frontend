@@ -1,0 +1,41 @@
+h2{
+    color: black;
+    align-self: center;
+}
+
+mat-card-header{
+    justify-content: center;
+}
+
+mat-card{
+    max-width: 500px;
+    text-align: center;
+}
+
+.error-theme {
+    background-color: red !important;
+    color: white !important;
+}
+
+mat-form-field{
+    display: block;
+}
+
+mat-icon{
+    color: black;
+}
+
+p{
+    padding: 1rem;
+    color: black;
+}
+
+.button-row{
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+p:hover{
+    cursor: pointer;
+}

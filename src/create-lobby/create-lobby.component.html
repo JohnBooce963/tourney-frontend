@@ -1,0 +1,36 @@
+<mat-card>
+    <mat-card-header>
+        <h2>Create Lobby</h2>
+    </mat-card-header>
+    <mat-card-content>
+        <form (ngSubmit)="createLobby()" #createLobbyForm="ngForm">
+            <mat-form-field>
+                <mat-label>Name: </mat-label>
+                <input matInput placeholder="Default Lobby" name="lobbyName" [(ngModel)]="lobbyName" required>
+                <mat-icon matSuffix>article</mat-icon>
+            </mat-form-field>
+            <mat-form-field>
+                <mat-label>Theme: </mat-label>
+                <mat-select name="lobbyTheme" [(ngModel)]="lobbyTheme" required>
+                    <mat-option *ngFor="let theme of themes" [value]="theme.value">
+                        {{ theme.label}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            <!-- <mat-form-field>
+                <mat-label>Password</mat-label>
+                <input type="password" matInput placeholder="Password" name="Password" [(ngModel)]="password" required>
+                <mat-icon matSuffix>lock</mat-icon>
+            </mat-form-field>
+            <mat-form-field>
+                <mat-label>Confirm Password</mat-label>
+                <input type="password" matInput placeholder="Confirm Password" name="Confirm Password" [(ngModel)]="confirmPassword" required>
+                <mat-icon matSuffix>lock</mat-icon>
+            </mat-form-field> -->
+            <div class="button-row">
+            <button mat-raised-button type="submit" color="primary"  [disabled]="!createLobbyForm.form.valid"><mat-icon matSuffix style="padding-top: 1px; color: white;">check</mat-icon>Submit</button>
+            <button mat-raised-button type="reset" (click)="onClose()" class="error-theme">Close<mat-icon matSuffix style="padding-top: 1px; color: white;">close</mat-icon></button>
+            </div>
+        </form>
+    </mat-card-content>
+</mat-card>

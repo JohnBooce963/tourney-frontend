@@ -1,0 +1,12 @@
+<mat-card>
+<div *ngIf="!endMessage">
+<h1 class="timer">{{ mmss(status.secondsLeft) }}</h1>
+<h2 class="headline">{{ status.currentPlayer }}'s turn to {{ status.phase }}</h2>
+</div>
+
+<div *ngIf="endMessage" class="end-banner">
+    <h2 class="headline">{{ endMessage }} – Lobby will close in {{ endSecondsLeft }}s</h2>
+</div>
+</mat-card>
+
+<!--<button class="choose" (click)="ws.nextTurn()">Next Turn</button>-->

@@ -1,0 +1,74 @@
+<mat-card>
+  <!-- <app-header-turn></app-header-turn> -->
+  <mat-card-header>
+    <h1>Lobby Manager</h1>
+  </mat-card-header>
+  <div class="button-row">
+    <button mat-raised-button color="accent" (click)="loadLobbies()"><mat-icon>refresh</mat-icon>Refresh Lobby</button>
+    <button mat-raised-button color="accent" (click)="createLobby()"><mat-icon>add_circle</mat-icon>Create Lobby</button>
+  </div>
+  <h2>Available Lobbies: </h2>
+  <mat-card-content>
+
+    <h3 *ngIf="lobbies.length === 0" class="lobby-no-content">No lobbies available</h3>
+
+    <div class="lobby-content" *ngFor="let lobby of lobbies" [ngClass]="'theme-' + lobby.theme">
+      <div class="lobby-overlay">
+        <div class="lobby-info">
+        <mat-label><mat-icon style="color: white;">article</mat-icon>Lobby Name: {{ lobby.name }}</mat-label>
+        <mat-label><mat-icon style="color: white;">list</mat-icon>
+          Lobby Theme: {{ getThemeLabel(lobby.theme) }}
+        </mat-label>
+        <mat-label><mat-icon style="color: white;">account_box</mat-icon>Players: {{ lobby.players ? (getPlayerCount(lobby.players)) : 0 }}/2</mat-label>
+        </div>
+        <button mat-raised-button color="primary" (click)="joinLobby(lobby.id)"><mat-icon style="color: white;">arrow_circle_right</mat-icon>Join</button>
+      </div>
+    </div>
+  </mat-card-content>
+
+</mat-card>
+
+<!-- <div class="p-6 max-w-2xl mx-auto space-y-6">
+  <h1 class="text-2xl font-bold">Lobby Manager</h1> -->
+
+  <!-- Create Lobby Form -->
+  <!-- <form (ngSubmit)="createLobby()" class="flex flex-col gap-3 p-4 border rounded bg-gray-50">
+    <label class="flex flex-col">
+      Lobby Name:
+      <input [(ngModel)]="lobbyName" name="lobbyName" class="border p-2 rounded"/>
+    </label>
+
+    <label class="flex flex-col">
+      Theme:
+      <select [(ngModel)]="theme" name="theme" class="border p-2 rounded">
+        <option [value]="1">Phantom & Crimson Solitaire</option>
+        <option [value]="2">Mizuki & Caerula Arbor</option>
+        <option [value]="3">Expeditioner's Jǫklumarkar</option>
+        <option [value]="4">Sarkaz's Furnaceside Fables</option>
+      </select>
+    </label>
+
+    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+      Create Lobby
+    </button>
+  </form> -->
+  
+  <!-- Lobby List -->
+  <!-- <div>
+    <h2 class="text-xl font-semibold mb-3">Available Lobbies</h2>
+    <div *ngIf="lobbies.length === 0" class="text-gray-500">No lobbies available</div>
+
+    <div *ngFor="let lobby of lobbies" class="p-4 mb-2 border rounded bg-white flex justify-between items-center">
+      <div>
+        <div class="font-bold">Lobby Name: {{ lobby.name }}</div>
+        <div class="text-sm text-gray-600">Lobby Theme: {{ lobby.theme === 4 ? "Sarkaz's Furnaceside Fables" : "xd"  }}</div>
+        <div class="text-sm">Players: {{ lobby.players ? (getPlayerCount(lobby.players)) : 0 }}/2</div>
+
+      </div>
+      <button (click)="joinLobby(lobby.id)"
+              class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">
+        Join
+      </button>
+    </div>
+  </div>
+</div> -->

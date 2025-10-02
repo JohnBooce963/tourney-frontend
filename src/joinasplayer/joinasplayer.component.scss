@@ -1,0 +1,36 @@
+h2{
+    color: black;
+}
+
+mat-card-header{
+    justify-content: center;
+}
+
+.button-row{
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+mat-card{
+    max-width: 480px;
+    // margin: 2em auto;
+    text-align: center;
+}
+
+mat-form-field{
+    display: block;
+}
+
+mat-icon{
+    color: black;
+}
+
+p{
+    padding: 1rem;
+    color: black;
+}
+
+p:hover{
+    cursor: pointer;
+}

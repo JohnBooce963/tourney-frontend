@@ -1,0 +1,90 @@
+.coin-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 100%;   /* take full popup height */
+  width: 100%;    /* take full popup width */
+  background-color: #1a1a1a;
+}
+
+.coin {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  transform-style: preserve-3d;
+  transition: all 1s ease-in-out;
+  background: gold; /* base center */
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.4); /* inner shadow for depth */
+  // overflow: hidden;
+  
+}
+
+.coin:hover{
+  transform: rotateY(180deg);
+}
+
+.coin::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  padding: 12px; /* thickness of the rim */
+  background: conic-gradient(
+    black 0deg 20deg,
+    white 20deg 40deg,
+    black 40deg 60deg,
+    white 60deg 80deg,
+    black 80deg 100deg,
+    white 100deg 120deg,
+    black 120deg 140deg,
+    white 140deg 160deg,
+    black 160deg 180deg,
+    white 180deg 200deg,
+    black 200deg 220deg,
+    white 220deg 240deg,
+    black 240deg 260deg,
+    white 260deg 280deg,
+    black 280deg 300deg,
+    white 300deg 320deg,
+    black 320deg 340deg,
+    white 340deg 360deg
+  );
+  -webkit-mask: radial-gradient(circle, transparent 65%, black 66%);
+  mask: radial-gradient(circle, transparent 65%, black 66%);
+  pointer-events: none;
+}
+
+.side-heads{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 20px;
+  color: black;
+  // z-index: 1; /* text on top */
+}
+
+.side-tails{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 20px;
+  color: black;
+  // z-index: 1; /* text on top */
+}
+
+
