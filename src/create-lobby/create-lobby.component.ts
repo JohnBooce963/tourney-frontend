@@ -35,7 +35,7 @@ export class CreateLobbyComponent {
   dialogRef = inject(MatDialogRef<CreateLobbyComponent>);
   data = inject(MAT_DIALOG_DATA);
   popUp = inject(PopupService);
-  
+
   private http = inject(HttpClient);
   private router = inject(Router);
 
@@ -70,7 +70,7 @@ export class CreateLobbyComponent {
         // this.loadLobbies(); // refresh list
         sessionStorage.setItem("ownerToken", res.ownerToken);
         this.dialogRef.close(res);
-        // this.router.navigate(['/lobbyRoom', res?.id])
+        this.router.navigate(['/lobbyRoom', res?.id])
       },
       error: (err) => {
         this.popUp.errorPopUp('Lobby Create Failed!')
