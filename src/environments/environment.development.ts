@@ -1,4 +1,4 @@
 export const environment = {
-    apiUrl : 'https://tourney-backend-re.vercel.app',
+    apiUrl : 'http://localhost:3000',
     wsUrl: 'wss://tourney-backend-re.vercel.app'
 };
