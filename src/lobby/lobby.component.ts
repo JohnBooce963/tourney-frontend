@@ -28,9 +28,8 @@ import { environment } from '../environments/environment.development';
 })
 export class LobbyComponent implements OnInit, OnDestroy{
 
-  constructor(public ws: WebSocketService, public popUp: PopupService){}
+  constructor(public sse: WebSocketService, public popUp: PopupService){}
 
-  private wsSub? : Subscription
   private http = inject(HttpClient);
   private router = inject(Router);
 
@@ -38,6 +37,7 @@ export class LobbyComponent implements OnInit, OnDestroy{
   theme: number = 4;
   lobbies: any[] = [];
 
+  private sseSub: any;
 
   public themes = [
     { value: 1, label: "Phantom & Crimson Solitaire" },
@@ -56,8 +56,11 @@ export class LobbyComponent implements OnInit, OnDestroy{
       //   this.lobbies = lobbies;
       // });
 
+    this.sseSub = this.sse.lobbies$.subscribe(lobbies => {
+      this.lobbies = lobbies
+    })
 
-
+    this.loadLobbies();
       
   }
 
