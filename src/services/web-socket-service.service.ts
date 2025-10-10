@@ -1,7 +1,5 @@
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Client, IMessage } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
 import { GameStatus } from '../model/gamestatus';
 import { PlayerAction } from '../model/playerAction';
 import { Router } from '@angular/router';
@@ -12,9 +10,10 @@ import { environment } from '../environments/environment';
   providedIn: 'root'
 })
 export class WebSocketService {
-  private router = inject(Router)
+  private router = inject(Router);
   private popup = inject(PopupService);
-  private ws: WebSocket | null = null;
+
+  private evtSource: EventSource | null = null;
 
   private connectedSubject = new BehaviorSubject<boolean>(false);
   connected$ = this.connectedSubject.asObservable();
@@ -132,31 +131,27 @@ export class WebSocketService {
   }
 
   connect() {
-    const wsUrl = environment.wsUrl; // change to deployed URL if needed
-    this.ws = new WebSocket(wsUrl);
+    const url = `${environment.apiUrl}/api/sse`;
+    this.evtSource = new EventSource(url);
 
-    this.ws.onopen = () => {
-      console.log('✅ Connected to WebSocket server');
+    this.evtSource.onopen = () => {
+      console.log('✅ Connected to SSE server');
       this.connectedSubject.next(true);
     };
 
-    this.ws.onmessage = (event) => this.handleMessage(event);
+    this.evtSource.onmessage = (event) => this.handleMessage(event);
 
-    this.ws.onclose = () => {
-      console.log('❌ Disconnected from WebSocket server');
+    this.evtSource.onerror = (err) => {
+      console.error('SSE error:', err);
       this.connectedSubject.next(false);
+      this.evtSource?.close();
       setTimeout(() => this.connect(), 3000); // auto reconnect
-    };
-
-    this.ws.onerror = (err) => {
-      console.error('WebSocket error:', err);
-      this.ws?.close();
     };
   }
   
 
   private handleMessage(event: MessageEvent) {
-    const msg = JSON.parse(event.data);
+     const msg = JSON.parse(event.data);
     const { type, lobbyId, data } = msg;
 
     switch (type) {
@@ -168,7 +163,7 @@ export class WebSocketService {
       case "selectedOp": this.selectedOpSubject.next(data); break;
       case "selectedSquad": this.selectedSquadSubject.next(data); break;
       case "end": this.endSubject.next(data); break;
-      case "coinFlip": 
+      case "coinFlip":
         this.coinFlipSubject.next(data);
         this.popup.coinFlipPopUp(lobbyId, data.result);
         setTimeout(() => this.flippingSubject.next(false), 3000);
@@ -181,7 +176,7 @@ export class WebSocketService {
         break;
       case "lobbyUpdate": this.roomSubject.next(data); break;
       case "lobbyDeleted": this.deletedLobbySubject.next(data); break;
-      default: console.warn('⚠️ Unknown WS message type:', type);
+      default: console.warn('⚠️ Unknown SSE message type:', type);
     }
   }
 
@@ -222,33 +217,39 @@ export class WebSocketService {
 
     // this.endDraft(lobbyId);
   // }
+  private sendAction(payload: any) {
+    return fetch(`${environment.apiUrl}/api/action`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  }
+
   sendPlayerAction(lobbyId: string, action: PlayerAction) {
-    this.ws?.send(JSON.stringify({ type: "playerAction", lobbyId, action }));
+    this.sendAction({ type: "playerAction", lobbyId, action });
   }
 
   sendConfirmedAction(lobbyId: string, action: PlayerAction) {
-    this.ws?.send(JSON.stringify({ type: "confirmedAction", lobbyId, action }));
+    this.sendAction({ type: "confirmedAction", lobbyId, action });
   }
 
   startDraft(lobbyId: string) {
-    this.ws?.send(JSON.stringify({ type: "startDraft", lobbyId }));
+    this.sendAction({ type: "startDraft", lobbyId });
   }
 
   flipCoin(lobbyId: string) {
     if (this.flippingSubject.value) return;
     this.flippingSubject.next(true);
-    this.ws?.send(JSON.stringify({ type: "flipCoin", lobbyId }));
+    this.sendAction({ type: "flipCoin", lobbyId });
   }
 
   getUpdate(lobbyId: string) {
-    this.ws?.send(JSON.stringify({ type: "getUpdate", lobbyId }));
+    this.sendAction({ type: "getUpdate", lobbyId });
   }
 
   unsubscribeFromAll() {
-    if (this.ws) {
-      this.ws.onmessage = null;
-    }
-    console.log('🧹 Removed all WS listeners');
+    this.evtSource?.close();
+    console.log('🧹 Removed all SSE listeners');
   }
 
   // async waitUntilConnected(): Promise<void> {
