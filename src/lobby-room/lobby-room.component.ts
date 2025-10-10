@@ -16,6 +16,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule} from '@angular/material/form-field';
 import { CoinflipComponent } from '../coinflip/coinflip.component';
+import { environment } from '../environments/environment.development';
 
 @Component({
   selector: 'app-lobby-room',
@@ -43,53 +44,58 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   ownerToken: string | null = null;
 
   async ngOnInit() {
-    await this.ws.waitUntilConnected();
+    //await this.ws.waitUntilConnected();
+
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
+    console.log(this.lobbyId)
 
-    this.ws.subscribeToRoom(this.lobbyId);
+    //this.ws.subscribeToRoom(this.lobbyId);
 
-    this.ws.subscribeToCoinFlip(this.lobbyId);
+    //this.ws.subscribeToCoinFlip(this.lobbyId);
 
-    // this.ws.coinFlipLobby$.subscribe(res => {
+    // //this.ws.coinFlipLobby$.subscribe(res => {
     //   if(res){
     //     console.log(res)
     //   }
     // })
 
-    this.ws.flipping$.subscribe(flipping => {
-      console.log(flipping)
-      this.isFlipping = flipping;
-    })
+    //this.ws.flipping$.subscribe(flipping => {
+    //   console.log(flipping)
+    //   this.isFlipping = flipping;
+    // })
 
-    this.ws.room$.subscribe(lobby => {
-      if (lobby) {
-        this.lobby = lobby;
-        console.log("Current lobby state:", lobby);
-      }
-    });
+    //this.ws.room$.subscribe(lobby => {
+    //   if (lobby) {
+    //     this.lobby = lobby;
+    //     console.log("Current lobby state:", lobby);
+    //   }
+    // });
 
-  //  this.wsSub = this.ws.coinFlipLobby$.subscribe(res => {
+  //  //this.wsSub = //this.ws.coinFlipLobby$.subscribe(res => {
   //   if (res && res.lobbyId === this.lobbyId) {
   //     console.log("Coin flip result:", res);
   //     this.popUp.coinFlipPopUp(this.lobbyId); // optional, show result
   //   }
   //  });
 
-    this.ws.draftRoom(this.lobbyId);
+    //this.ws.draftRoom(this.lobbyId);
 
     this.ownerToken = sessionStorage.getItem("ownerToken");
 
-    this.loadLobby();
+    
   }
 
   ngOnDestroy() {
-    this.wsSub?.unsubscribe();   // 🔥 stop listening
-    this.ws.unsubscribeFromRoom(this.lobbyId); // optional helper in your WebSocketService
+    //this.wsSub?.unsubscribe();   // 🔥 stop listening
+    //this.ws.unsubscribeFromRoom(this.lobbyId); // optional helper in your WebSocketService
   }
 
   loadLobby() {
-    this.http.get<any>(`http://localhost:8080/lobby/${this.lobbyId}`).subscribe({
-      next: (res) => this.lobby = res,
+    this.http.get<LobbyResponse>(`${environment.apiUrl}/lobby/${this.lobbyId}`).subscribe({
+      next: (res) => {
+        console.log(res)
+        this.lobby = res
+      },
       error: (err) => console.error('Error loading lobby', err)
     });
   }
@@ -112,7 +118,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
       };
 
       console.log(req);
-      this.http.post<any>(`http://localhost:8080/lobby/${this.lobbyId}/join`, req).subscribe({
+      this.http.post<LobbyResponse>(`${environment.apiUrl}/lobby/${this.lobbyId}/join`, req).subscribe({
         next: (res) => {
           this.lobby = res;
           console.log(this.lobby);
@@ -136,7 +142,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     const slot = sessionStorage.getItem('playerSlot');
     if (!slot) return;
 
-    this.http.post<any>(`http://localhost:8080/lobby/${this.lobbyId}/cancel/${slot}`, {})
+    this.http.post<LobbyResponse>(`${environment.apiUrl}/lobby/${this.lobbyId}/cancel/${slot}`, {})
       .subscribe({
         next: res => {
           this.lobby = res;
@@ -155,7 +161,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     if (token){
       this.popUp.alertPopUp("You can not leave the because you are the lobby owner")
     }else if(playerName && !token){
-      this.http.post<any>(`http://localhost:8080/lobby/${this.lobbyId}/leave`, { playerName })
+      this.http.post<LobbyResponse>(`${environment.apiUrl}/lobby/${this.lobbyId}/leave`, { playerName })
         .subscribe({
           next: res => {
             this.lobby = res;
@@ -178,7 +184,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.http.post(`http://localhost:8080/lobby/${this.lobbyId}/delete`, { ownerToken: token })
+    this.http.post(`${environment.apiUrl}/lobby/${this.lobbyId}/delete`, { ownerToken: token })
       .subscribe({
         next: () => {
           this.popUp.successPopUp("Lobby Deleted!")
@@ -201,13 +207,13 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     //   data: { lobbyId: this.lobbyId}
     // })
 
-    this.ws.flipCoin(this.lobbyId)
+    //this.ws.flipCoin(this.lobbyId)
 
     
   }
 
   startGame(){
-    this.ws.startDraft(this.lobbyId);
+    //this.ws.startDraft(this.lobbyId);
   }
 
 }

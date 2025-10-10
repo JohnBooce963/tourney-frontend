@@ -31,45 +31,43 @@ export class HeaderTurnComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Subscribe to backend updates
-    this.wsSub = this.ws.status$.subscribe(status => {
-      this.status = status;
+    // this.wsSub = this.ws.status$.subscribe(status => {
+    //   this.status = status;
 
-      // Restart local ticking whenever backend pushes
-      this.localTimerSub?.unsubscribe();
-      this.localTimerSub = interval(1000).subscribe(() => {
-        if (this.status.secondsLeft > 0) {
-          this.status = { ...this.status, secondsLeft: this.status.secondsLeft - 1 };
-        }
-      });
-    });
+    //   // Restart local ticking whenever backend pushes
+    //   this.localTimerSub?.unsubscribe();
+    //   this.localTimerSub = interval(1000).subscribe(() => {
+    //     if (this.status.secondsLeft > 0) {
+    //       this.status = { ...this.status, secondsLeft: this.status.secondsLeft - 1 };
+    //     }
+    //   });
+    // });
 
-    this.endSub = this.ws.end$.subscribe(end => {
-      if (end) {
-        this.endMessage = end.message;
-        this.endSecondsLeft = end.secondsLeft;
+    // this.endSub = this.ws.end$.subscribe(end => {
+    //   if (end) {
+    //     this.endMessage = end.message;
+    //     this.endSecondsLeft = end.secondsLeft;
 
-        this.endTimerSub?.unsubscribe();
-        this.endTimerSub = interval(1000).subscribe(() => {
-          this.endSecondsLeft--;
-          if (this.endSecondsLeft <= 0) {
-            this.endTimerSub?.unsubscribe();
-            this.endMessage = null;
-            this.endSecondsLeft = 0;
-
-            sessionStorage.clear();
-            
-            this.draftEnded.emit();
-          }
-        });
-      }
-    });
+    //     this.endTimerSub?.unsubscribe();
+    //     this.endTimerSub = interval(1000).subscribe(() => {
+    //       this.endSecondsLeft--;
+    //       if (this.endSecondsLeft <= 0) {
+    //         this.endTimerSub?.unsubscribe();
+    //         this.endMessage = null;
+    //         this.endSecondsLeft = 0;
+    //         sessionStorage.clear();
+    //         this.draftEnded.emit();
+    //       }
+    //     });
+    //   }
+    // });
   }
 
   ngOnDestroy(): void {
-    this.wsSub?.unsubscribe();
-    this.localTimerSub?.unsubscribe();
-    this.endSub?.unsubscribe();
-    this.endTimerSub?.unsubscribe();
+    // this.wsSub?.unsubscribe();
+    // this.localTimerSub?.unsubscribe();
+    // this.endSub?.unsubscribe();
+    // this.endTimerSub?.unsubscribe();
   }
 
   mmss(t: number) {

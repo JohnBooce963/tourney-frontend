@@ -14,6 +14,7 @@ import { PlayerAction } from '../model/playerAction';
 import { DraftItem } from '../model/draftItem';
 import { LobbyResponse } from '../model/lobbyResponse';
 import { PopupService } from '../services/popup.service';
+import { environment } from '../environments/environment.development';
 
 @Component({
   selector: 'app-draft',
@@ -80,8 +81,8 @@ export class DraftComponent implements OnInit, OnDestroy{
   async ngOnInit(){
 
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
-    await this.ws.waitUntilConnected();   // ⏳ wait here
-    this.ws.subscribeToDrafting(this.lobbyId);
+    // await this.ws.waitUntilConnected();   // ⏳ wait here
+    //this.ws.subscribeToDrafting(this.lobbyId);
 
     this.playerSlot = Number(sessionStorage.getItem("playerSlot"))
     this.playerName = sessionStorage.getItem("playerName") || "Guest";
@@ -94,21 +95,21 @@ export class DraftComponent implements OnInit, OnDestroy{
     this.fetchOperators();
 
    this.subs.push(
-      this.ws.status$.subscribe(status => {
-        this.gameState = status;
-        this.activeSlot = status.currentSlot;
-      }),
+      //this.ws.status$.subscribe(status => {
+      //   this.gameState = status;
+      //   this.activeSlot = status.currentSlot;
+      // }),
 
-      this.ws.theme$.subscribe(theme => {
-          this.fetchSquad(theme)
-      }),
+      //this.ws.theme$.subscribe(theme => {
+      //     this.fetchSquad(theme)
+      // }),
 
-      this.ws.messages$.subscribe(state => this.playerAction = state),
-      this.ws.picked$.subscribe(picked => this.picked = picked),
-      this.ws.bannedoperator$.subscribe(banOps => this.bannedOps = banOps),
-      this.ws.bannedsquad$.subscribe(banSquad => this.bannedSquad = banSquad),
-      this.ws.selectedOp$.subscribe(currentOp => this.currentOp = currentOp),
-      this.ws.selectedSquad$.subscribe(currentSquad => this.currentSquad = currentSquad)
+      //this.ws.messages$.subscribe(state => this.playerAction = state),
+      //this.ws.picked$.subscribe(picked => this.picked = picked),
+      //this.ws.bannedoperator$.subscribe(banOps => this.bannedOps = banOps),
+      //this.ws.bannedsquad$.subscribe(banSquad => this.bannedSquad = banSquad),
+      //this.ws.selectedOp$.subscribe(currentOp => this.currentOp = currentOp),
+      //this.ws.selectedSquad$.subscribe(currentSquad => this.currentSquad = currentSquad)
     )
 
   }
@@ -116,15 +117,15 @@ export class DraftComponent implements OnInit, OnDestroy{
   ngOnDestroy() {
     this.subs.forEach(s => s.unsubscribe());
     this.subs = [];
-    this.ws.unsubscribeFromDrafting(this.lobbyId); // 👈 optional helper
+    //this.ws.unsubscribeFromDrafting(this.lobbyId); // 👈 optional helper
   }
 
   startDraft(): Observable<void> {
-    return this.http.post<void>('http://localhost:8080/start', {});
+    return this.http.post<void>(`${environment.apiUrl}/start`, {});
   }
 
   fetchOperators(): void {
-    this.http.get<operator[]>('http://localhost:8080/Operator')
+    this.http.get<operator[]>(`${environment.apiUrl}/Operator`)
       .subscribe({
         next: (data) => {
           this.operators = data;
@@ -137,7 +138,7 @@ export class DraftComponent implements OnInit, OnDestroy{
   }
 
   fetchOperator(name: string): void {
-    this.http.get<operator>(`http://localhost:8080/${name}`).subscribe(op => {
+    this.http.get<operator>(`${environment.apiUrl}/${name}`).subscribe(op => {
       this.operator = op;
       console.log("Operator: " ,this.operator)
     });
@@ -145,7 +146,7 @@ export class DraftComponent implements OnInit, OnDestroy{
   }
 
   fetchSquad(theme: number): void {
-    this.http.get<Squad[]>(`http://localhost:8080/Squad/${theme}`)
+    this.http.get<Squad[]>(`${environment.apiUrl}/Squad/${theme}`)
     .subscribe({
         next: (data) => {
           this.squads = data;
@@ -181,7 +182,7 @@ export class DraftComponent implements OnInit, OnDestroy{
           character: this.selectedOperator.char_alt_name,
           squad: ''
         };
-        this.ws.sendConfirmedAction(this.lobbyId, action);
+        //this.ws.sendConfirmedAction(this.lobbyId, action);
           
       }else if(this.selectedSquad){
         const action: PlayerAction = {
@@ -191,7 +192,7 @@ export class DraftComponent implements OnInit, OnDestroy{
           squad: this.selectedSquad.squad_name
         };
 
-        this.ws.sendConfirmedAction(this.lobbyId, action);
+        //this.ws.sendConfirmedAction(this.lobbyId, action);
       }
     }
 
@@ -213,7 +214,7 @@ export class DraftComponent implements OnInit, OnDestroy{
         squad: squad.squad_name
       };
 
-      this.ws.sendPlayerAction(this.lobbyId, action);
+      //this.ws.sendPlayerAction(this.lobbyId, action);
     }
   }
 
@@ -230,7 +231,7 @@ export class DraftComponent implements OnInit, OnDestroy{
         character: operator.char_alt_name,
         squad: ''
       };
-      this.ws.sendPlayerAction(this.lobbyId, action);
+      //this.ws.sendPlayerAction(this.lobbyId, action);
     }
   }
 
@@ -275,6 +276,7 @@ export class DraftComponent implements OnInit, OnDestroy{
   }
 
   onDraftEnd() {
+    sessionStorage.clear();
     this.router.navigateByUrl('/', { skipLocationChange: true}).then(() => {
       this.router.navigate(['/lobby']);
     });

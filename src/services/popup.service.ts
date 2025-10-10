@@ -33,8 +33,10 @@ export class PopupService {
     let dialogRef = this.dialog.open(CreateLobbyComponent);
 
     dialogRef.afterClosed().subscribe(result => {
+      if(result){
       console.log("Lobby Created (PopUp): ", result)
       this.successPopUp("Lobby Created!");
+      }
     })
   }
 

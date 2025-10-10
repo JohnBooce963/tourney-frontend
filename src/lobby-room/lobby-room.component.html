@@ -8,7 +8,7 @@
       Flip a Coin
     </button>
     <button mat-raised-button color="primary" (click)="startGame()" *ngIf="ready"><mat-icon style="color: white;">cancel</mat-icon>Start Game</button>
-    <button mat-raised-button color="warn" (click)="deleteLobby()"><mat-icon style="color: white;">cancel</mat-icon>Delete Lobby</button>
+    <button mat-raised-button color="warn" (click)="deleteLobby()" [disabled]="!ownerToken"><mat-icon style="color: white;">cancel</mat-icon>Delete Lobby</button>
   </div>
 <mat-card-content>
   <mat-card-header>

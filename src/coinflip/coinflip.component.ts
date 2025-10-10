@@ -24,11 +24,9 @@ export class CoinflipComponent implements OnInit{
 
   private http = inject(HttpClient);
 
-  constructor(
-    private ws: WebSocketService,
-    public dialogRef: MatDialogRef<CoinflipComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) {}
+  dialogRef = inject(MatDialogRef<CoinflipComponent>);
+  data = inject(MAT_DIALOG_DATA);
+  ws = inject(WebSocketService);
 
   ngOnInit(){
     // this.flipCoin(this.data.lobbyId);
@@ -49,7 +47,7 @@ export class CoinflipComponent implements OnInit{
     // })
     // determine rotation based on result
     
-    // this.ws.flipCoin(lobbyId);
+    // //this.ws.flipCoin(lobbyId);
   // }
 
   playCoinFlipAnimation(result: any){

@@ -17,6 +17,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule} from '@angular/material/form-field';
+import { environment } from '../environments/environment.development';
 
 @Component({
   selector: 'app-lobby',
@@ -47,25 +48,33 @@ export class LobbyComponent implements OnInit, OnDestroy{
 
   async ngOnInit() {
 
-      await this.ws.waitUntilConnected();
-      this.ws.subscribeToLobbies();
-      this.wsSub = this.ws.lobbies$.subscribe(lobbies => {
-        this.lobbies = lobbies;
-      });
+      // await //this.ws.waitUntilConnected();
 
-      this.loadLobbies();
+      // //this.ws.subscribeToLobbies();
+      
+      //this.wsSub = //this.ws.lobbies$.subscribe(lobbies => {
+      //   this.lobbies = lobbies;
+      // });
+
+
 
       
   }
 
   ngOnDestroy() {
-    this.wsSub?.unsubscribe();  
-    this.ws.unsubscribeFromLobby(); // 👈 optional helper in WebSocketService
+    //this.wsSub?.unsubscribe();
+
+    // if (//this.ws.isConnected()) {
+    //   //this.ws.unsubscribeFromLobby();
+    // } else {
+    //   console.warn('Skipping unsubscribe — WebSocket not connected.');
+    // }
   }
 
   loadLobbies() {
-    this.http.get<any[]>('http://localhost:8080/lobby').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/lobby`).subscribe({
       next: (data) => {
+        console.log(data)
         this.lobbies = data;
       },
       error: (err) => {this.popUp.errorPopUp('Error fetching lobbies: ' + err)}
@@ -74,6 +83,7 @@ export class LobbyComponent implements OnInit, OnDestroy{
 
   createLobby() {
     this.popUp.createLobbyPopUp();
+
     // const lobbyRequest: LobbyRequest = {
     //   lobbyName: this.lobbyName,
     //   lobbyTheme: this.theme
@@ -82,14 +92,14 @@ export class LobbyComponent implements OnInit, OnDestroy{
     // console.log(lobbyRequest);
 
     // this.http.post<LobbyResponse>(
-    //   'http://localhost:8080/lobby',
+    //   `${environment.apiUrl}/api/lobby`,
     //   lobbyRequest
     // ).subscribe({
     //   next: (res) => {
     //     console.log('Lobby created:', res);
     //     this.loadLobbies(); // refresh list
     //     sessionStorage.setItem("ownerToken", res.ownerToken);
-    //     this.router.navigate(['/lobbyRoom', res?.id])
+    //     // this.router.navigate(['/lobbyRoom', res?.id])
     //   },
     //   error: (err) => {
     //     this.popUp.errorPopUp('Server has shutdown')

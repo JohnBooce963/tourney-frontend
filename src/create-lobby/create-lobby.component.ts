@@ -1,4 +1,4 @@
-import { Component, Inject, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +13,7 @@ import { HttpClient } from '@angular/common/http';
 import { PopupService } from '../services/popup.service';
 import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
+import { environment } from '../environments/environment.development';
 
 @Component({
   selector: 'app-create-lobby',
@@ -31,12 +32,10 @@ import { Router } from '@angular/router';
 })
 export class CreateLobbyComponent {
 
-  constructor(
-    public dialogRef: MatDialogRef<CreateLobbyComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
-    public popUp: PopupService
-  ){}
-
+  dialogRef = inject(MatDialogRef<CreateLobbyComponent>);
+  data = inject(MAT_DIALOG_DATA);
+  popUp = inject(PopupService);
+  
   private http = inject(HttpClient);
   private router = inject(Router);
 
@@ -63,7 +62,7 @@ export class CreateLobbyComponent {
     console.log(lobbyRequest);
 
     this.http.post<LobbyResponse>(
-      'http://localhost:8080/lobby',
+      `${environment.apiUrl}/api/lobby`,
       lobbyRequest
     ).subscribe({
       next: (res) => {
@@ -71,7 +70,7 @@ export class CreateLobbyComponent {
         // this.loadLobbies(); // refresh list
         sessionStorage.setItem("ownerToken", res.ownerToken);
         this.dialogRef.close(res);
-        this.router.navigate(['/lobbyRoom', res?.id])
+        // this.router.navigate(['/lobbyRoom', res?.id])
       },
       error: (err) => {
         this.popUp.errorPopUp('Lobby Create Failed!')
