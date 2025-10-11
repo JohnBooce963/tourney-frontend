@@ -76,14 +76,11 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     //   this.isFlipping = flipping;
     // })
 
-    // this.sse.room$.subscribe(update => {
-    //   if (!update) return;
-      
-    //   this.lobby = { ...this.lobby, ...update};
+    this.ws.room$.subscribe(update => {
+      this.lobbyId = update;
+      console.log("lobby update:", update);
 
-    //   console.log("Merged lobby update:", this.lobby);
-
-    // });
+    });
 
 
     this.loadLobby()
@@ -96,7 +93,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
 
     //this.ws.draftRoom(this.lobbyId);
 
-
+    this.playerName = sessionStorage.getItem("playerName");
+    this.playerSlot = sessionStorage.getItem("playerSlot")
     this.ownerToken = sessionStorage.getItem("ownerToken");
 
     
