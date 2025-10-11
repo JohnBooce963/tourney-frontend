@@ -95,11 +95,7 @@ export class WebSocketService {
     const { type, lobbyId, data } = msg;
 
     switch (type) {
-      case "lobbies":
-        const currentLobby = this.lobbiesSubject.value || {};
-        const mergedLobby = { ...currentLobby, ...data };
-        this.lobbiesSubject.next(mergedLobby); 
-        break;
+      case "lobbies": this.lobbiesSubject.next(data); break;
       case "status": this.statusSubject.next(data); break;
       case "picked": this.pickedSubject.next(data); break;
       case "bannedOps": this.bannedoperatorSubject.next(data); break;
