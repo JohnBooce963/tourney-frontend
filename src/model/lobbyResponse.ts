@@ -3,8 +3,8 @@ export interface LobbyResponse{
   name: string;
   theme: number;
   players: {
+    0: string | null;
     1: string | null;
-    2: string | null;
   }; 
   ownerToken: string;
 }
