@@ -58,8 +58,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
     console.log(this.lobbyId)
 
-    this.loadLobby()
-    this.sse.subscribeToRoom(this.lobbyId);
+    // this.loadLobby()
+    // this.sse.subscribeToRoom(this.lobbyId);
 
 
     //this.ws.subscribeToRoom(this.lobbyId);
