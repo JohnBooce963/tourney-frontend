@@ -176,6 +176,8 @@ export class WebSocketService {
         break;
       case "lobbyUpdate": this.roomSubject.next(data); break;
       case "lobbyDeleted": this.deletedLobbySubject.next(data); break;
+      case "join": this.roomSubject.next(data); break;
+      case "cancel": this.roomSubject.next(data); break;
       default: console.warn('⚠️ Unknown SSE message type:', type);
     }
   }
