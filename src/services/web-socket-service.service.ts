@@ -305,13 +305,9 @@ export class WebSocketService {
 //     });
 //   }
 
-//   subscribeToRoom(lobbyId: string){
-//     this.client.subscribe(`/topic/lobby/${lobbyId}`, (msg) => {
-//       const updatedLobby = JSON.parse(msg.body);
-//       this.roomSubject.next(updatedLobby)
-//       console.log("Lobby updated:", updatedLobby);
-//     });
-//   }
+  subscribeToRoom(lobbyId: string){
+
+  }
 
 //   signalToDelete(lobbyId: string){
 //     this.client.subscribe(`/topic/lobby/${lobbyId}/deleted`, (msg) => {

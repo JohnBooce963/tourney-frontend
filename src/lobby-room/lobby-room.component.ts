@@ -46,10 +46,13 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     //await this.ws.waitUntilConnected();
 
-    this.sse.connect();
+    // this.sse.connect();
 
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
     console.log(this.lobbyId)
+
+    this.loadLobby()
+
 
     //this.ws.subscribeToRoom(this.lobbyId);
 
@@ -82,7 +85,6 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
 
     //this.ws.draftRoom(this.lobbyId);
 
-    this.loadLobby()
 
     this.ownerToken = sessionStorage.getItem("ownerToken");
 
