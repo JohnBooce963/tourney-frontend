@@ -51,13 +51,14 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   ];
 
   async ngOnInit() {
-    await this.ws.waitUntilConnected();
+    // await this.ws.waitUntilConnected();
 
     // this.sse.connect();
 
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
     console.log(this.lobbyId)
 
+    this.loadLobby()
     // this.sse.subscribeToRoom(this.lobbyId);
 
     //this.ws.subscribeToCoinFlip(this.lobbyId);
@@ -72,17 +73,13 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     //   console.log(flipping)
     //   this.isFlipping = flipping;
     // })
+    this.ws.subscribeToRoom(this.lobbyId);
 
-    // this.ws.room$.subscribe(update => {
-    //   this.lobbyId = update;
-    //   console.log("lobby update:", update);
+    this.ws.room$.subscribe(update => {
+      this.lobbyId = update;
+      console.log("lobby update:", update);
 
-    // });
-
-
-    this.loadLobby()
-
-    await this.ws.subscribeToRoom(this.lobbyId);
+    });
   //  //this.wsSub = //this.ws.coinFlipLobby$.subscribe(res => {
   //   if (res && res.lobbyId === this.lobbyId) {
   //     console.log("Coin flip result:", res);
@@ -105,6 +102,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   }
 
   loadLobby() {
+    this.lobbyId = this.route.snapshot.paramMap.get('id')!;
+
     this.http.get<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}`).subscribe({
       next: (res) => {
         console.log(res)
@@ -115,6 +114,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   }
 
   join(slot: number) {
+    this.lobbyId = this.route.snapshot.paramMap.get('id')!;
     const playereSlot = sessionStorage.getItem('playerSlot');
     if (playereSlot){
       this.popUp.alertPopUp("Please cancel previous role before join!")
@@ -161,6 +161,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     const slot = sessionStorage.getItem('playerSlot');
     if (!slot) return;
 
+    this.lobbyId = this.route.snapshot.paramMap.get('id')!;
+
     this.http.post<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}/cancel/${slot}`, {})
       .subscribe({
         next: res => {
@@ -177,6 +179,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   leaveLobby() {
     const playerName = sessionStorage.getItem('playerName');
     const token = sessionStorage.getItem("ownerToken");
+    this.lobbyId = this.route.snapshot.paramMap.get('id')!;
+
     if (token){
       this.popUp.alertPopUp("You can not leave the because you are the lobby owner")
     }else if(playerName && !token){
@@ -202,6 +206,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
       this.popUp.alertPopUp("You are not the lobby owner")
       return;
     }
+
+    this.lobbyId = this.route.snapshot.paramMap.get('id')!;
 
     this.http.post(`${environment.apiUrl}/api/lobby/${this.lobbyId}/delete`, { ownerToken: token })
       .subscribe({
