@@ -43,6 +43,13 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   playerName: string | null = null;
   ownerToken: string | null = null;
 
+  public themes = [
+    { value: 1, label: "Phantom & Crimson Solitaire" },
+    { value: 2, label: "Mizuki & Caerula Arbor" },
+    { value: 3, label: "Expeditioner's Jǫklumarkar" },
+    { value: 4, label: "Sarkaz's Furnaceside Fables"}
+  ];
+
   async ngOnInit() {
     //await this.ws.waitUntilConnected();
 
@@ -143,6 +150,11 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
       });
       }
     })
+  }
+
+  getThemeLabel(themeId: number){
+    let theme = this.themes.find(t => t.value === themeId)
+    return theme ? theme.label : "Unknow Theme"
   }
 
   cancelRole() {
