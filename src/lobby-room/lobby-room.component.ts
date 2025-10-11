@@ -60,9 +60,6 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
 
     // this.sse.subscribeToRoom(this.lobbyId);
 
-
-    // this.ws.subscribeToRoom(this.lobbyId);
-
     //this.ws.subscribeToCoinFlip(this.lobbyId);
 
     // //this.ws.coinFlipLobby$.subscribe(res => {
@@ -84,6 +81,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
 
 
     this.loadLobby()
+
+    this.ws.subscribeToRoom(this.lobbyId);
   //  //this.wsSub = //this.ws.coinFlipLobby$.subscribe(res => {
   //   if (res && res.lobbyId === this.lobbyId) {
   //     console.log("Coin flip result:", res);

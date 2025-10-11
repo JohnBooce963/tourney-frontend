@@ -61,7 +61,7 @@ export class LobbyComponent implements OnInit, OnDestroy{
     //   console.log("lobbies update:", this.lobbies);
     // })
 
-    // this.ws.subscribeToLobbies();
+    this.ws.subscribeToLobbies();
 
     this.loadLobbies();
       

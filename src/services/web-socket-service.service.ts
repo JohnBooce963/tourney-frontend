@@ -15,7 +15,7 @@ export class WebSocketService {
   private popup = inject(PopupService);
 
   private client = new Ably.Realtime({ key: environment.ablyWsKey });
-  private lobbyChannels = new Map<string, Ably.RealtimeChannel>();
+  private channels: Ably.RealtimeChannel = this.client.channels.get('');
 
   private connectedSubject = new BehaviorSubject<boolean>(false);
   connected$ = this.connectedSubject.asObservable();
@@ -196,16 +196,16 @@ export class WebSocketService {
   // }
 
   subscribeToLobbies() {
-    const lobbiesChannel = this.client.channels.get('lobbies');
-    lobbiesChannel.subscribe('lobbies', (msg) => {
+    this.channels = this.client.channels.get('lobbies');
+    this.channels.subscribe('lobbies', (msg) => {
       console.log('📡 Lobbies update:', msg.data);
       this.lobbiesSubject.next(msg.data);
     });
   }
 
   subscribeToRoom(lobbyId: string) {
-    const channel = this.client.channels.get(`lobby-${lobbyId}`);
-    channel.subscribe("lobbyUpdate", (msg) => {
+    this.channels  = this.client.channels.get(`lobby-${lobbyId}`);
+    this.channels.subscribe("lobbyUpdate", (msg) => {
       this.roomSubject.next(msg.data);
     });
   }
