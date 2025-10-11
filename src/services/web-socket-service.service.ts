@@ -327,7 +327,8 @@ export class WebSocketService {
       console.error(`❌ SSE error (room ${lobbyId}):`, err);
       this.connectedSubject.next(false);
       this.evtSource?.close();
-      setTimeout(() => this.subscribeToRoom(lobbyId), 3000); // auto reconnect
+      this.router.navigate(['/lobby'])
+      // setTimeout(() => this.subscribeToRoom(lobbyId), 3000); // auto reconnect
     };
   }
 

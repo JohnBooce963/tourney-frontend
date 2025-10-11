@@ -203,7 +203,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.http.post(`${environment.apiUrl}/lobby/${this.lobbyId}/delete`, { ownerToken: token })
+    this.http.post(`${environment.apiUrl}/api/lobby/${this.lobbyId}/delete`, { ownerToken: token })
       .subscribe({
         next: () => {
           this.popUp.successPopUp("Lobby Deleted!")
