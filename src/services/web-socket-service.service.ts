@@ -14,7 +14,7 @@ export class WebSocketService {
   private router = inject(Router);
   private popup = inject(PopupService);
 
-  client:Ably.Realtime = new Ably.Realtime({ authUrl: environment.tokenUrl, clientId: 'angular-client' });
+  client:Ably.Realtime = new Ably.Realtime({ key: environment.wsKey});
 
   private connectedSubject = new BehaviorSubject<boolean>(false);
   connected$ = this.connectedSubject.asObservable();
