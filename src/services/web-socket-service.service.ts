@@ -206,6 +206,7 @@ export class WebSocketService {
   subscribeToRoom(lobbyId: string) {
     this.channels  = this.client.channels.get(`lobby-${lobbyId}`);
     this.channels.subscribe("lobbyUpdate", (msg) => {
+      console.log('📡 LobbyRoom Update:', msg.data);
       this.roomSubject.next(msg.data);
     });
   }
