@@ -95,7 +95,7 @@ export class WebSocketService {
     const { type, lobbyId, data } = msg;
 
     switch (type) {
-      case "lobbies": 
+      case "lobbies":
         const currentLobby = this.lobbiesSubject.value || {};
         const mergedLobby = { ...currentLobby, ...data };
         this.lobbiesSubject.next(mergedLobby); 
@@ -122,6 +122,7 @@ export class WebSocketService {
         const currentRoom = this.roomSubject.value || {};
         const mergedRoom = { ...currentRoom, ...data };
         this.roomSubject.next(mergedRoom);
+        break;
       case "lobbyDeleted": this.deletedLobbySubject.next(data); break;
       case "join": this.roomSubject.next(data); break;
       case "cancel": this.roomSubject.next(data); break;
