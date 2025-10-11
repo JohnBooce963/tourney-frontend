@@ -58,7 +58,6 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
     console.log(this.lobbyId)
 
-    this.loadLobby()
     // this.sse.subscribeToRoom(this.lobbyId);
 
 
@@ -86,6 +85,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
 
     });
 
+
+    this.loadLobby()
   //  //this.wsSub = //this.ws.coinFlipLobby$.subscribe(res => {
   //   if (res && res.lobbyId === this.lobbyId) {
   //     console.log("Coin flip result:", res);
