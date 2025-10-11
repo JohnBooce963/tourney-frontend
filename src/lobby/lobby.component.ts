@@ -58,8 +58,15 @@ export class LobbyComponent implements OnInit, OnDestroy{
       //   this.lobbies = lobbies;
       // });
 
-    this.sseSub = this.sse.lobbies$.subscribe(lobbies => {
-      this.lobbies = lobbies
+    this.sseSub = this.sse.lobbies$.subscribe(update => {
+      if (!update) return;
+
+      this.lobbies = {
+        ...this.lobbies,
+        ...update
+      }
+
+      console.log("lobbies update:", this.lobbies);
     })
 
     // this.loadLobbies();

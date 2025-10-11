@@ -95,7 +95,11 @@ export class WebSocketService {
     const { type, lobbyId, data } = msg;
 
     switch (type) {
-      case "lobbies": this.lobbiesSubject.next(data); break;
+      case "lobbies": 
+        const currentLobby = this.lobbiesSubject.value || {};
+        const mergedLobby = { ...currentLobby, ...data };
+        this.lobbiesSubject.next(mergedLobby); 
+        break;
       case "status": this.statusSubject.next(data); break;
       case "picked": this.pickedSubject.next(data); break;
       case "bannedOps": this.bannedoperatorSubject.next(data); break;
@@ -114,7 +118,10 @@ export class WebSocketService {
           this.router.navigate(['/draft', lobbyId]);
         });
         break;
-      case "lobbyUpdate": this.roomSubject.next(data); break;
+      case "lobbyUpdate": 
+        const currentRoom = this.roomSubject.value || {};
+        const mergedRoom = { ...currentRoom, ...data };
+        this.roomSubject.next(mergedRoom);
       case "lobbyDeleted": this.deletedLobbySubject.next(data); break;
       case "join": this.roomSubject.next(data); break;
       case "cancel": this.roomSubject.next(data); break;

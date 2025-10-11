@@ -77,11 +77,13 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     //   this.isFlipping = flipping;
     // })
 
-    this.sse.room$.subscribe(lobby => {
-      if (lobby) {
-        this.lobby = lobby;
-        console.log("Current lobby state:", this.lobby);
-      }
+    this.sse.room$.subscribe(update => {
+      if (!update) return;
+      
+      this.lobby = { ...this.lobby, ...update};
+
+      console.log("Merged lobby update:", this.lobby);
+
     });
 
   //  //this.wsSub = //this.ws.coinFlipLobby$.subscribe(res => {
