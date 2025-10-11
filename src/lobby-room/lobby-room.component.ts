@@ -161,7 +161,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     const slot = sessionStorage.getItem('playerSlot');
     if (!slot) return;
 
-    this.http.post<LobbyResponse>(`${environment.apiUrl}/lobby/${this.lobbyId}/cancel/${slot}`, {})
+    this.http.post<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}/cancel/${slot}`, {})
       .subscribe({
         next: res => {
           this.lobby = res;
@@ -180,7 +180,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     if (token){
       this.popUp.alertPopUp("You can not leave the because you are the lobby owner")
     }else if(playerName && !token){
-      this.http.post<LobbyResponse>(`${environment.apiUrl}/lobby/${this.lobbyId}/leave`, { playerName })
+      this.http.post<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}/leave`, { playerName })
         .subscribe({
           next: res => {
             this.lobby = res;
