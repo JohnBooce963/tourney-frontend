@@ -73,7 +73,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     this.sse.room$.subscribe(lobby => {
       if (lobby) {
         this.lobby = lobby;
-        console.log("Current lobby state:", lobby);
+        console.log("Current lobby state:", this.lobby);
       }
     });
 
