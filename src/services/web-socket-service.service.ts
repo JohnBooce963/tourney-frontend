@@ -78,6 +78,16 @@ export class WebSocketService {
       console.warn('⚠️ Disconnected from Ably');
       this.connectedSubject.next(false);
     });
+
+  this.client.connection.on((stateChange) => {
+    console.log('🔄 Connection state:', stateChange.current, stateChange.previous);
+  });
+
+  // ✅ Channel state logging (same approach)
+  const lobbyChannel = this.client.channels.get('lobbies');
+  lobbyChannel.on((stateChange) => {
+    console.log('📡 Channel state:', stateChange.current, stateChange.previous);
+  });
   }
 
   async waitUntilConnected(): Promise<void> {
