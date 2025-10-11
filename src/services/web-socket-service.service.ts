@@ -270,9 +270,13 @@ export class WebSocketService {
   // }
 
   subscribeToLobbies() {
-    if(this.evtSource){
-      this.evtSource.onmessage = (event) => this.handleMessage(event);
-    }
+    this.evtSource?.close();
+
+    this.evtSource = new EventSource(`${environment.apiUrl}/api/sse`);
+    this.evtSource.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      if (msg.type === 'lobbies') this.lobbiesSubject.next(msg.data);
+    };
   }
 
 
@@ -305,7 +309,26 @@ export class WebSocketService {
 //   }
 
   subscribeToRoom(lobbyId: string){
+    if (this.evtSource) {
+      this.evtSource.close();
+    }
 
+    const url = `${environment.apiUrl}/api/sse?lobbyId=${lobbyId}`;
+    this.evtSource = new EventSource(url);
+
+    this.evtSource.onopen = () => {
+      console.log(`✅ Connected to lobby room ${lobbyId}`);
+      this.connectedSubject.next(true);
+    };
+
+    this.evtSource.onmessage = (event) => this.handleMessage(event);
+
+    this.evtSource.onerror = (err) => {
+      console.error(`❌ SSE error (room ${lobbyId}):`, err);
+      this.connectedSubject.next(false);
+      this.evtSource?.close();
+      setTimeout(() => this.subscribeToRoom(lobbyId), 3000); // auto reconnect
+    };
   }
 
 //   signalToDelete(lobbyId: string){

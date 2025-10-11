@@ -52,6 +52,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     console.log(this.lobbyId)
 
     this.loadLobby()
+    this.sse.subscribeToRoom(this.lobbyId);
 
 
     //this.ws.subscribeToRoom(this.lobbyId);
