@@ -38,7 +38,7 @@
  
 </mat-card-content>
   <div class="start-draft">
-    <button mat-raised-button class="success-theme" (click)="startGame()" [disabled]="lobby?.players?.[1] == null || lobby?.players?.[2] == null">
+    <button mat-raised-button class="success-theme" (click)="startGame()" [disabled]="lobby?.players?.[0] == null || lobby?.players?.[1] == null">
       <mat-icon class="material-symbols-outlined" style=" padding-top: 1px;">
         play_circle
       </mat-icon>
