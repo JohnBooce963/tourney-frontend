@@ -151,7 +151,8 @@ export class WebSocketService {
   
 
   private handleMessage(event: MessageEvent) {
-     const msg = JSON.parse(event.data);
+    const msg = JSON.parse(event.data);
+    console.log(msg)
     const { type, lobbyId, data } = msg;
 
     switch (type) {
