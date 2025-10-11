@@ -27,7 +27,7 @@ import { environment } from '../environments/environment.development';
 })
 export class LobbyRoomComponent implements OnInit, OnDestroy {
 
-  constructor(public ws: WebSocketService, public dialog: MatDialog, public popUp: PopupService){}
+  constructor(public sse: WebSocketService, public dialog: MatDialog, public popUp: PopupService){}
 
   private wsSub?: Subscription;
   private route = inject(ActivatedRoute);
@@ -45,6 +45,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     //await this.ws.waitUntilConnected();
+
+    this.sse.connect();
 
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
     console.log(this.lobbyId)
@@ -80,6 +82,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
 
     //this.ws.draftRoom(this.lobbyId);
 
+    this.loadLobby()
+
     this.ownerToken = sessionStorage.getItem("ownerToken");
 
     
@@ -91,7 +95,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   }
 
   loadLobby() {
-    this.http.get<LobbyResponse>(`${environment.apiUrl}/lobby/${this.lobbyId}`).subscribe({
+    this.http.get<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}`).subscribe({
       next: (res) => {
         console.log(res)
         this.lobby = res
@@ -110,7 +114,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     
     dialogRef.afterClosed().subscribe(playerName => {
       if(playerName){
-              console.log(playerName);
+      console.log(playerName);
 
       const req: JoinRequest = {
         playerName: playerName,
@@ -118,7 +122,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
       };
 
       console.log(req);
-      this.http.post<LobbyResponse>(`${environment.apiUrl}/lobby/${this.lobbyId}/join`, req).subscribe({
+      this.http.post<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}/join`, req).subscribe({
         next: (res) => {
           this.lobby = res;
           console.log(this.lobby);
