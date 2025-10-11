@@ -152,7 +152,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     })
   }
 
-  getThemeLabel(themeId: number){
+  getThemeLabel(themeId: number | undefined){
     let theme = this.themes.find(t => t.value === themeId)
     return theme ? theme.label : "Unknow Theme"
   }
