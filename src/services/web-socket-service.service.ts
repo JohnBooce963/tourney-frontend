@@ -269,12 +269,11 @@ export class WebSocketService {
   //   return this.client?.connected ?? false;
   // }
 
-//   subscribeToLobbies() {
-//     this.client.subscribe('/topic/lobby', (msg: IMessage) => {
-//       const updated = JSON.parse(msg.body);
-//       this.lobbiesSubject.next(updated);
-//     });
-//   }
+  subscribeToLobbies() {
+    if(this.evtSource){
+      this.evtSource.onmessage = (event) => this.handleMessage(event);
+    }
+  }
 
 
 

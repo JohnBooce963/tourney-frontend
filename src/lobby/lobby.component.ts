@@ -48,11 +48,11 @@ export class LobbyComponent implements OnInit, OnDestroy{
 
   async ngOnInit() {
 
-    this.sse.connect();
+    // this.sse.connect();
 
-      // await //this.ws.waitUntilConnected();
+    // await //this.ws.waitUntilConnected();
 
-      // //this.ws.subscribeToLobbies();
+    this.sse.subscribeToLobbies();
       
       //this.wsSub = //this.ws.lobbies$.subscribe(lobbies => {
       //   this.lobbies = lobbies;
