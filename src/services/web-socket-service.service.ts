@@ -195,17 +195,17 @@ export class WebSocketService {
   //   return this.client?.connected ?? false;
   // }
 
-  subscribeToLobbies() {
+  async subscribeToLobbies() {
     this.channels = this.client.channels.get('lobbies');
-    this.channels.subscribe('lobbies', (msg) => {
+    await this.channels.subscribe('lobbies', (msg) => {
       console.log('📡 Lobbies update:', msg.data);
       this.lobbiesSubject.next(msg.data);
     });
   }
 
-  subscribeToRoom(lobbyId: string) {
+  async subscribeToRoom(lobbyId: string) {
     this.channels  = this.client.channels.get(`lobby-${lobbyId}`);
-    this.channels.subscribe("lobbyUpdate", (msg) => {
+    await this.channels.subscribe("lobbyUpdate", (msg) => {
       console.log('📡 LobbyRoom Update:', msg.data);
       this.roomSubject.next(msg.data);
     });
