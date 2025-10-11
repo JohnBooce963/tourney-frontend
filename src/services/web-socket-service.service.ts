@@ -14,7 +14,7 @@ export class WebSocketService {
   private router = inject(Router);
   private popup = inject(PopupService);
 
-  private client: Ably.Realtime;
+  client = new Ably.Realtime({ key: environment.tokenUrl });
 
   private connectedSubject = new BehaviorSubject<boolean>(false);
   connected$ = this.connectedSubject.asObservable();
@@ -64,48 +64,59 @@ export class WebSocketService {
   flipping$ = this.flippingSubject.asObservable();
 
   constructor() {
-    this.client = new Ably.Realtime({
-      authUrl: environment.tokenUrl,
-      clientId: "angular-client",
-    });
+    this.connect();
+  }
 
+  async connect() {
     this.client.connection.on('connected', () => {
-      console.log("✅ Connected to Ably with token");
+      console.log('✅ Connected to Ably Realtime');
+      this.connectedSubject.next(true);
     });
 
-    this.client.connection.on('failed', (err) => {
-      console.error("❌ Ably connection failed:", err);
+    this.client.connection.on('disconnected', () => {
+      console.warn('⚠️ Disconnected from Ably');
+      this.connectedSubject.next(false);
+    });
+
+    this.client.connection.on((stateChange) => {
+      console.log('🔄 Connection state:', stateChange.current, stateChange.previous);
+    });
+
+    // ✅ Channel state logging (same approach)
+    const lobbyChannel = this.client.channels.get('lobbies');
+    lobbyChannel.on((stateChange) => {
+      console.log('📡 Channel state:', stateChange.current, stateChange.previous);
     });
   }
 
-  // async waitUntilConnected(): Promise<void> {
-  //   if (this.client.connection.state === 'connected') {
-  //     return; // already connected
-  //   }
+  async waitUntilConnected(): Promise<void> {
+    if (this.client.connection.state === 'connected') {
+      return; // already connected
+    }
 
-  //   return new Promise((resolve, reject) => {
-  //     const timeout = setTimeout(() => {
-  //       reject(new Error('Ably connection timeout'));
-  //     }, 5000); // optional 5s timeout
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Ably connection timeout'));
+      }, 5000); // optional 5s timeout
 
-  //     const handleConnect = () => {
-  //       clearTimeout(timeout);
-  //       console.log('✅ waitUntilConnected: Ably connected');
-  //       this.client.connection.off('connected', handleConnect);
-  //       resolve();
-  //     };
+      const handleConnect = () => {
+        clearTimeout(timeout);
+        console.log('✅ waitUntilConnected: Ably connected');
+        this.client.connection.off('connected', handleConnect);
+        resolve();
+      };
 
-  //     const handleFailed = (err: any) => {
-  //       clearTimeout(timeout);
-  //       console.error('❌ Ably failed to connect:', err);
-  //       this.client.connection.off('failed', handleFailed);
-  //       reject(err);
-  //     };
+      const handleFailed = (err: any) => {
+        clearTimeout(timeout);
+        console.error('❌ Ably failed to connect:', err);
+        this.client.connection.off('failed', handleFailed);
+        reject(err);
+      };
 
-  //     this.client.connection.once('connected', handleConnect);
-  //     this.client.connection.once('failed', handleFailed);
-  //   });
-  // }
+      this.client.connection.once('connected', handleConnect);
+      this.client.connection.once('failed', handleFailed);
+    });
+  }
   
 
   // private handleMessage(type: string, lobbyId: string, data: any) {
