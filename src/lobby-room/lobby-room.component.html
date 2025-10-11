@@ -19,8 +19,8 @@
     <div class="player-info">
     <p>Player 1</p>
     <mat-icon>account_circle</mat-icon>
-    <h3> {{ lobby?.players?.[1] || "Empty" }}</h3>
-    <button mat-raised-button color="primary" (click)="join(1)" [disabled]="lobby?.players?.[1] || playerSlot === '2'">Join as Player 1</button>
+    <h3> {{ lobby?.players?.[0] || "Empty" }}</h3>
+    <button mat-raised-button color="primary" (click)="join(1)" [disabled]="lobby?.players?.[0] || playerSlot === '2'">Join as Player 1</button>
     <button mat-raised-button color="accent" (click)="cancelRole()" [disabled]="!playerSlot || playerSlot === '2'">Cancel Role</button>
     </div>
     <span class="material-symbols-outlined" style="font-size: 48px;">
@@ -29,8 +29,8 @@
     <div class="player-info">
     <p>Player 2</p>
     <mat-icon>account_circle</mat-icon>
-    <h3>{{ lobby?.players?.[2] || "Empty" }}</h3>
-    <button mat-raised-button color="primary" (click)="join(2)" [disabled]="lobby?.players?.[2] || playerSlot === '1'">Join as Player 2</button>
+    <h3>{{ lobby?.players?.[1] || "Empty" }}</h3>
+    <button mat-raised-button color="primary" (click)="join(2)" [disabled]="lobby?.players?.[1] || playerSlot === '1'">Join as Player 2</button>
     <button mat-raised-button color="accent" (click)="cancelRole()" [disabled]="!playerSlot || playerSlot === '1'">Cancel Role</button>
     </div>
   </div>
