@@ -73,7 +73,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     //   console.log(flipping)
     //   this.isFlipping = flipping;
     // })
-    this.ws.subscribeToRoom(this.lobbyId);
+    await this.ws.subscribeToRoom(this.lobbyId);
 
     this.ws.room$.subscribe(update => {
       this.lobbyId = update;
