@@ -61,7 +61,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     // this.sse.subscribeToRoom(this.lobbyId);
 
 
-    this.ws.subscribeToRoom(this.lobbyId);
+    // this.ws.subscribeToRoom(this.lobbyId);
 
     //this.ws.subscribeToCoinFlip(this.lobbyId);
 
@@ -76,14 +76,14 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     //   this.isFlipping = flipping;
     // })
 
-    this.ws.room$.subscribe(update => {
-      this.lobbyId = update;
-      console.log("lobby update:", update);
+    // this.ws.room$.subscribe(update => {
+    //   this.lobbyId = update;
+    //   console.log("lobby update:", update);
 
-    });
+    // });
 
 
-    // this.loadLobby()
+    this.loadLobby()
   //  //this.wsSub = //this.ws.coinFlipLobby$.subscribe(res => {
   //   if (res && res.lobbyId === this.lobbyId) {
   //     console.log("Coin flip result:", res);

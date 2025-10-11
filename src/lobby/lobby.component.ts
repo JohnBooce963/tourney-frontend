@@ -37,8 +37,6 @@ export class LobbyComponent implements OnInit, OnDestroy{
   theme: number = 4;
   lobbies: any[] = [];
 
-  private sseSub: any;
-
   public themes = [
     { value: 1, label: "Phantom & Crimson Solitaire" },
     { value: 2, label: "Mizuki & Caerula Arbor" },
@@ -63,14 +61,13 @@ export class LobbyComponent implements OnInit, OnDestroy{
     //   console.log("lobbies update:", this.lobbies);
     // })
 
-    this.ws.subscribeToLobbies();
+    // this.ws.subscribeToLobbies();
 
     this.loadLobbies();
       
   }
 
   ngOnDestroy() {
-    this.sseSub?.unsubscribe();
     //this.wsSub?.unsubscribe();
 
     // if (//this.ws.isConnected()) {
