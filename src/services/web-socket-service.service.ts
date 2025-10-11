@@ -14,8 +14,7 @@ export class WebSocketService {
   private router = inject(Router);
   private popup = inject(PopupService);
 
-  private client = new Ably.Realtime({ key: environment.ablyWsKey });
-  private channels: Ably.RealtimeChannel = this.client.channels.get('');
+  private client: Ably.Realtime;
 
   private connectedSubject = new BehaviorSubject<boolean>(false);
   connected$ = this.connectedSubject.asObservable();
@@ -65,59 +64,48 @@ export class WebSocketService {
   flipping$ = this.flippingSubject.asObservable();
 
   constructor() {
-    this.connect();
-  }
+    this.client = new Ably.Realtime({
+      authUrl: environment.tokenUrl,
+      clientId: "angular-client",
+    });
 
-  async connect() {
     this.client.connection.on('connected', () => {
-      console.log('✅ Connected to Ably Realtime');
-      this.connectedSubject.next(true);
+      console.log("✅ Connected to Ably with token");
     });
 
-    this.client.connection.on('disconnected', () => {
-      console.warn('⚠️ Disconnected from Ably');
-      this.connectedSubject.next(false);
-    });
-
-    this.client.connection.on((stateChange) => {
-      console.log('🔄 Connection state:', stateChange.current, stateChange.previous);
-    });
-
-    // ✅ Channel state logging (same approach)
-    const lobbyChannel = this.client.channels.get('lobbies');
-    lobbyChannel.on((stateChange) => {
-      console.log('📡 Channel state:', stateChange.current, stateChange.previous);
+    this.client.connection.on('failed', (err) => {
+      console.error("❌ Ably connection failed:", err);
     });
   }
 
-  async waitUntilConnected(): Promise<void> {
-    if (this.client.connection.state === 'connected') {
-      return; // already connected
-    }
+  // async waitUntilConnected(): Promise<void> {
+  //   if (this.client.connection.state === 'connected') {
+  //     return; // already connected
+  //   }
 
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Ably connection timeout'));
-      }, 5000); // optional 5s timeout
+  //   return new Promise((resolve, reject) => {
+  //     const timeout = setTimeout(() => {
+  //       reject(new Error('Ably connection timeout'));
+  //     }, 5000); // optional 5s timeout
 
-      const handleConnect = () => {
-        clearTimeout(timeout);
-        console.log('✅ waitUntilConnected: Ably connected');
-        this.client.connection.off('connected', handleConnect);
-        resolve();
-      };
+  //     const handleConnect = () => {
+  //       clearTimeout(timeout);
+  //       console.log('✅ waitUntilConnected: Ably connected');
+  //       this.client.connection.off('connected', handleConnect);
+  //       resolve();
+  //     };
 
-      const handleFailed = (err: any) => {
-        clearTimeout(timeout);
-        console.error('❌ Ably failed to connect:', err);
-        this.client.connection.off('failed', handleFailed);
-        reject(err);
-      };
+  //     const handleFailed = (err: any) => {
+  //       clearTimeout(timeout);
+  //       console.error('❌ Ably failed to connect:', err);
+  //       this.client.connection.off('failed', handleFailed);
+  //       reject(err);
+  //     };
 
-      this.client.connection.once('connected', handleConnect);
-      this.client.connection.once('failed', handleFailed);
-    });
-  }
+  //     this.client.connection.once('connected', handleConnect);
+  //     this.client.connection.once('failed', handleFailed);
+  //   });
+  // }
   
 
   // private handleMessage(type: string, lobbyId: string, data: any) {
@@ -206,17 +194,17 @@ export class WebSocketService {
   // }
 
   async subscribeToLobbies() {
-    this.channels = this.client.channels.get('lobbies');
-    await this.channels.subscribe('lobbies', (msg) => {
-      console.log('📡 Lobbies update:', msg.data);
+    const lobbies = this.client.channels.get('lobbies');
+    await lobbies.subscribe('lobbies', (msg) => {
+      console.log('Lobbies update:', msg.data);
       this.lobbiesSubject.next(msg.data);
     });
   }
 
   async subscribeToRoom(lobbyId: string) {
-    this.channels  = this.client.channels.get(`lobby-${lobbyId}`);
-    await this.channels.subscribe("lobbyUpdate", (msg) => {
-      console.log('📡 LobbyRoom Update:', msg.data);
+    const room  = this.client.channels.get(`lobby-${lobbyId}`);
+    await room.subscribe("lobbyUpdate", (msg) => {
+      console.log(`lobby-${lobbyId}:`, msg.data);
       this.roomSubject.next(msg.data);
     });
   }
