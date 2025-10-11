@@ -5,6 +5,7 @@ import { PlayerAction } from '../model/playerAction';
 import { Router } from '@angular/router';
 import { PopupService } from './popup.service';
 import { environment } from '../environments/environment';
+import * as Ably from 'ably';
 
 @Injectable({
   providedIn: 'root'
@@ -13,8 +14,8 @@ export class WebSocketService {
   private router = inject(Router);
   private popup = inject(PopupService);
 
-  private evtSource: EventSource | null = null;
-  private roomEvtSource: EventSource | null = null;
+  private client = new Ably.Realtime({ key: environment.ablyWsKey });
+  private lobbyChannels = new Map<string, Ably.RealtimeChannel>();
 
   private connectedSubject = new BehaviorSubject<boolean>(false);
   connected$ = this.connectedSubject.asObservable();
@@ -67,62 +68,66 @@ export class WebSocketService {
     this.connect();
   }
 
-  connect() {
-    if (this.evtSource) return;
-
-    const url = `${environment.apiUrl}/api/sse`;
-    this.evtSource = new EventSource(url);
-
-    this.evtSource.onopen = () => {
-      console.log('✅ Connected to SSE server');
+  async connect() {
+    this.client.connection.on('connected', () => {
+      console.log('✅ Connected to Ably Realtime');
       this.connectedSubject.next(true);
-    };
+    });
 
-    this.evtSource.onmessage = (event) => this.handleMessage(event);
-
-    this.evtSource.onerror = (err) => {
-      console.error('SSE error:', err);
+    this.client.connection.on('disconnected', () => {
+      console.warn('⚠️ Disconnected from Ably');
       this.connectedSubject.next(false);
-      this.evtSource?.close();
-      setTimeout(() => this.connect(), 3000); // auto reconnect
-    };
+    });
   }
   
 
-  private handleMessage(event: MessageEvent) {
-    const msg = JSON.parse(event.data);
-    console.log(msg)
-    const { type, lobbyId, data } = msg;
-
+  private handleMessage(type: string, lobbyId: string, data: any) {
     switch (type) {
-      case "lobbies": this.lobbiesSubject.next(data); break;
-      case "status": this.statusSubject.next(data); break;
-      case "picked": this.pickedSubject.next(data); break;
-      case "bannedOps": this.bannedoperatorSubject.next(data); break;
-      case "bannedSquad": this.bannedsquadSubject.next(data); break;
-      case "selectedOp": this.selectedOpSubject.next(data); break;
-      case "selectedSquad": this.selectedSquadSubject.next(data); break;
-      case "end": this.endSubject.next(data); break;
-      case "coinFlip":
+      case 'lobbies':
+        this.lobbiesSubject.next(data);
+        break;
+      case 'status':
+        this.statusSubject.next(data);
+        break;
+      case 'picked':
+        this.pickedSubject.next(data);
+        break;
+      case 'bannedOps':
+        this.bannedoperatorSubject.next(data);
+        break;
+      case 'bannedSquad':
+        this.bannedsquadSubject.next(data);
+        break;
+      case 'selectedOp':
+        this.selectedOpSubject.next(data);
+        break;
+      case 'selectedSquad':
+        this.selectedSquadSubject.next(data);
+        break;
+      case 'end':
+        this.endSubject.next(data);
+        break;
+      case 'coinFlip':
         this.coinFlipSubject.next(data);
         this.popup.coinFlipPopUp(lobbyId, data.result);
         setTimeout(() => this.flippingSubject.next(false), 3000);
         break;
-      case "draftStart":
+      case 'draftStart':
         this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
           this.endSubject.next(null);
           this.router.navigate(['/draft', lobbyId]);
         });
         break;
-      case "lobbyUpdate": 
-        const currentRoom = this.roomSubject.value || {};
-        const mergedRoom = { ...currentRoom, ...data };
-        this.roomSubject.next(mergedRoom);
+      case 'lobbyUpdate':
+      case 'join':
+      case 'cancel':
+        this.roomSubject.next(data);
         break;
-      case "lobbyDeleted": this.deletedLobbySubject.next(data); break;
-      case "join": this.roomSubject.next(data); break;
-      case "cancel": this.roomSubject.next(data); break;
-      default: console.warn('⚠️ Unknown SSE message type:', type);
+      case 'lobbyDeleted':
+        this.deletedLobbySubject.next(data);
+        break;
+      default:
+        console.warn('⚠️ Unknown Ably message type:', type);
     }
   }
 
@@ -156,60 +161,24 @@ export class WebSocketService {
     this.sendAction({ type: "getUpdate", lobbyId });
   }
 
-  unsubscribeFromAll() {
-    this.evtSource?.close();
-    console.log('🧹 Removed all SSE listeners');
-  }
-
-  async waitUntilConnected(): Promise<void> {
-    return new Promise((resolve) => {
-      const checkConnection = () => {
-        if (this.evtSource?.onopen) {
-          resolve();
-        } else {
-          setTimeout(checkConnection, 200);
-        }
-      };
-      checkConnection();
-    });
-  }
 
   // isConnected(): boolean {
   //   return this.client?.connected ?? false;
   // }
 
   subscribeToLobbies() {
-    this.evtSource?.close();
-
-    this.evtSource = new EventSource(`${environment.apiUrl}/api/sse`);
-    this.evtSource.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg.type === 'lobbies') this.lobbiesSubject.next(msg.data);
-    };
+    const lobbiesChannel = this.client.channels.get('lobbies');
+    lobbiesChannel.subscribe('lobbies', (msg) => {
+      console.log('📡 Lobbies update:', msg.data);
+      this.lobbiesSubject.next(msg.data);
+    });
   }
 
-  subscribeToRoom(lobbyId: string){
-    if (this.roomEvtSource) {
-      this.roomEvtSource.close();
-    }
-
-    const url = `${environment.apiUrl}/api/sse?lobbyId=${lobbyId}`;
-    this.roomEvtSource = new EventSource(url);
-
-    this.roomEvtSource.onopen = () => {
-      console.log(`✅ Connected to lobby room ${lobbyId}`);
-      this.connectedSubject.next(true);
-    };
-
-    this.roomEvtSource.onmessage = (event) => this.handleMessage(event);
-
-    this.roomEvtSource.onerror = (err) => {
-      console.error(`❌ SSE error (room ${lobbyId}):`, err);
-      this.connectedSubject.next(false);
-      this.roomEvtSource?.close();
-      this.router.navigate(['/lobby'])
-      // setTimeout(() => this.subscribeToRoom(lobbyId), 3000); // auto reconnect
-    };
+  subscribeToRoom(lobbyId: string) {
+    const channel = this.client.channels.get(`lobby-${lobbyId}`);
+    channel.subscribe("lobbyUpdate", (msg) => {
+      this.roomSubject.next(msg.data);
+    });
   }
 
 }

@@ -28,7 +28,7 @@ import { environment } from '../environments/environment.development';
 })
 export class LobbyComponent implements OnInit, OnDestroy{
 
-  constructor(public sse: WebSocketService, public popUp: PopupService){}
+  constructor(public ws: WebSocketService, public popUp: PopupService){}
 
   private http = inject(HttpClient);
   private router = inject(Router);
@@ -62,6 +62,8 @@ export class LobbyComponent implements OnInit, OnDestroy{
     //   this.lobbies = update
     //   console.log("lobbies update:", this.lobbies);
     // })
+
+    this.ws.subscribeToLobbies();
 
     this.loadLobbies();
       

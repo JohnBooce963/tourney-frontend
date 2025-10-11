@@ -27,7 +27,7 @@ import { environment } from '../environments/environment.development';
 })
 export class LobbyRoomComponent implements OnInit, OnDestroy {
 
-  constructor(public sse: WebSocketService, public dialog: MatDialog, public popUp: PopupService){}
+  constructor(public ws: WebSocketService, public dialog: MatDialog, public popUp: PopupService){}
 
   private wsSub?: Subscription;
   private route = inject(ActivatedRoute);
@@ -61,7 +61,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     // this.sse.subscribeToRoom(this.lobbyId);
 
 
-    //this.ws.subscribeToRoom(this.lobbyId);
+    this.ws.subscribeToRoom(this.lobbyId);
 
     //this.ws.subscribeToCoinFlip(this.lobbyId);
 
@@ -76,14 +76,14 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     //   this.isFlipping = flipping;
     // })
 
-    this.sse.room$.subscribe(update => {
-      if (!update) return;
+    // this.sse.room$.subscribe(update => {
+    //   if (!update) return;
       
-      this.lobby = { ...this.lobby, ...update};
+    //   this.lobby = { ...this.lobby, ...update};
 
-      console.log("Merged lobby update:", this.lobby);
+    //   console.log("Merged lobby update:", this.lobby);
 
-    });
+    // });
 
 
     this.loadLobby()
