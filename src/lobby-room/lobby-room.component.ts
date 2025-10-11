@@ -59,7 +59,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     console.log(this.lobbyId)
 
     this.loadLobby()
-    this.sse.subscribeToRoom(this.lobbyId);
+    // this.sse.subscribeToRoom(this.lobbyId);
 
 
     //this.ws.subscribeToRoom(this.lobbyId);
@@ -77,12 +77,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     //   this.isFlipping = flipping;
     // })
 
-    this.sse.room$.subscribe(lobby => {
-      if (lobby) {
-        this.lobby = lobby;
-        console.log("Current lobby state:", this.lobby);
-      }
-    });
+
 
   //  //this.wsSub = //this.ws.coinFlipLobby$.subscribe(res => {
   //   if (res && res.lobbyId === this.lobbyId) {
@@ -108,7 +103,12 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     this.http.get<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}`).subscribe({
       next: (res) => {
         console.log(res)
-        this.lobby = res
+        this.sse.room$.subscribe(lobby => {
+          if (lobby) {
+            this.lobby = lobby;
+            console.log("Current lobby state:", this.lobby);
+          }
+        });
       },
       error: (err) => console.error('Error loading lobby', err)
     });
