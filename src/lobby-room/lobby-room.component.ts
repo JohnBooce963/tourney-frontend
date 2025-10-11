@@ -51,7 +51,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   ];
 
   async ngOnInit() {
-    //await this.ws.waitUntilConnected();
+    await this.ws.waitUntilConnected();
 
     // this.sse.connect();
 

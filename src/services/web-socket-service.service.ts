@@ -79,57 +79,86 @@ export class WebSocketService {
       this.connectedSubject.next(false);
     });
   }
+
+  async waitUntilConnected(): Promise<void> {
+    if (this.client.connection.state === 'connected') {
+      return; // already connected
+    }
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Ably connection timeout'));
+      }, 5000); // optional 5s timeout
+
+      const handleConnect = () => {
+        clearTimeout(timeout);
+        console.log('✅ waitUntilConnected: Ably connected');
+        this.client.connection.off('connected', handleConnect);
+        resolve();
+      };
+
+      const handleFailed = (err: any) => {
+        clearTimeout(timeout);
+        console.error('❌ Ably failed to connect:', err);
+        this.client.connection.off('failed', handleFailed);
+        reject(err);
+      };
+
+      this.client.connection.once('connected', handleConnect);
+      this.client.connection.once('failed', handleFailed);
+    });
+  }
   
 
-  private handleMessage(type: string, lobbyId: string, data: any) {
-    switch (type) {
-      case 'lobbies':
-        this.lobbiesSubject.next(data);
-        break;
-      case 'status':
-        this.statusSubject.next(data);
-        break;
-      case 'picked':
-        this.pickedSubject.next(data);
-        break;
-      case 'bannedOps':
-        this.bannedoperatorSubject.next(data);
-        break;
-      case 'bannedSquad':
-        this.bannedsquadSubject.next(data);
-        break;
-      case 'selectedOp':
-        this.selectedOpSubject.next(data);
-        break;
-      case 'selectedSquad':
-        this.selectedSquadSubject.next(data);
-        break;
-      case 'end':
-        this.endSubject.next(data);
-        break;
-      case 'coinFlip':
-        this.coinFlipSubject.next(data);
-        this.popup.coinFlipPopUp(lobbyId, data.result);
-        setTimeout(() => this.flippingSubject.next(false), 3000);
-        break;
-      case 'draftStart':
-        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-          this.endSubject.next(null);
-          this.router.navigate(['/draft', lobbyId]);
-        });
-        break;
-      case 'lobbyUpdate':
-      case 'join':
-      case 'cancel':
-        this.roomSubject.next(data);
-        break;
-      case 'lobbyDeleted':
-        this.deletedLobbySubject.next(data);
-        break;
-      default:
-        console.warn('⚠️ Unknown Ably message type:', type);
-    }
-  }
+  // private handleMessage(type: string, lobbyId: string, data: any) {
+  //   switch (type) {
+  //     case 'lobbies':
+  //       this.lobbiesSubject.next(data);
+  //       break;
+  //     case 'status':
+  //       this.statusSubject.next(data);
+  //       break;
+  //     case 'picked':
+  //       this.pickedSubject.next(data);
+  //       break;
+  //     case 'bannedOps':
+  //       this.bannedoperatorSubject.next(data);
+  //       break;
+  //     case 'bannedSquad':
+  //       this.bannedsquadSubject.next(data);
+  //       break;
+  //     case 'selectedOp':
+  //       this.selectedOpSubject.next(data);
+  //       break;
+  //     case 'selectedSquad':
+  //       this.selectedSquadSubject.next(data);
+  //       break;
+  //     case 'end':
+  //       this.endSubject.next(data);
+  //       break;
+  //     case 'coinFlip':
+  //       this.coinFlipSubject.next(data);
+  //       this.popup.coinFlipPopUp(lobbyId, data.result);
+  //       setTimeout(() => this.flippingSubject.next(false), 3000);
+  //       break;
+  //     case 'draftStart':
+  //       this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+  //         this.endSubject.next(null);
+  //         this.router.navigate(['/draft', lobbyId]);
+  //       });
+  //       break;
+  //     case 'lobbyUpdate':
+  //     case 'join':
+  //     case 'cancel':
+  //       this.roomSubject.next(data);
+  //       break;
+  //     case 'lobbyDeleted':
+  //       this.deletedLobbySubject.next(data);
+  //       break;
+  //     default:
+  //       console.warn('⚠️ Unknown Ably message type:', type);
+  //   }
+  // }
 
   private sendAction(payload: any) {
     return fetch(`${environment.apiUrl}/api/action`, {
