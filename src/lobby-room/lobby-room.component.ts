@@ -80,11 +80,11 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
         console.log("🔄 Lobby update received:", update);
         this.lobby = update; // ✅ Apply new state to UI
       }
-      // if(update.deleted){
-      //   this.popUp.alertPopUp("Lobby deleted by the owner!");
-      //   this.router.navigate(['/lobby']);
-      //   return;
-      // }
+      if(update.type === 'deleted'){
+        this.popUp.alertPopUp("Lobby deleted by the owner!");
+        this.router.navigate(['/lobby']);
+        return;
+      }
     });
   //  //this.wsSub = //this.ws.coinFlipLobby$.subscribe(res => {
   //   if (res && res.lobbyId === this.lobbyId) {
