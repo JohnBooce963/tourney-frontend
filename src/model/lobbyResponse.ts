@@ -3,8 +3,7 @@ export interface LobbyResponse{
   name: string;
   theme: number;
   players: {
-    0: string | null;
-    1: string | null;
-  }; 
+    [key: number]: string | null;  // ✅ allows lobby.players[0], lobby.players[1]
+  };
   ownerToken: string;
 }

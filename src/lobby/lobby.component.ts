@@ -65,7 +65,9 @@ export class LobbyComponent implements OnInit, OnDestroy{
     await this.ws.subscribeToLobbies();
 
     this.ws.lobbies$.subscribe(lobbies => {
-      this.lobbies = lobbies;
+      if(lobbies){
+        this.lobbies = lobbies;
+      }
     });
 
       
