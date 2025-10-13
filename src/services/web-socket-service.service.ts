@@ -216,6 +216,7 @@ export class WebSocketService {
     deleteSignal.subscribe("lobbyDelete", (msg) => {
       console.log('lobbyDelete: ', msg.data)
       this.deletedLobbySubject.next(msg.data);
+      this.router.navigate(['/lobby'])
     })
   }
 

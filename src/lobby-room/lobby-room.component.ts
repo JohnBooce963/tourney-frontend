@@ -83,11 +83,6 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     });
 
     await this.ws.subscribeToDelete();
-
-    this.ws.deletedLobby$.subscribe(signal => {
-      console.log(signal);
-      this.router.navigate(['/lobby']);
-    })
   //  //this.wsSub = //this.ws.coinFlipLobby$.subscribe(res => {
   //   if (res && res.lobbyId === this.lobbyId) {
   //     console.log("Coin flip result:", res);
