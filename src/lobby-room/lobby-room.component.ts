@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { JoinRequest } from '../model/joinRequest';
 import { WebSocketService } from '../services/web-socket-service.service';
@@ -73,18 +73,21 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     //   console.log(flipping)
     //   this.isFlipping = flipping;
     // })
-    await this.ws.subscribeToRoom(this.lobbyId);
+    this.ws.subscribeToRoom(this.lobbyId);
 
     this.ws.room$.subscribe((update: LobbyResponse) => {
       if (update && update.id === this.lobbyId) {
         console.log("🔄 Lobby update received:", update);
         this.lobby = update; // ✅ Apply new state to UI
       }
-      if(!update){
-        this.popUp.alertPopUp("Lobby deleted by the owner!");
-        this.router.navigate(['/lobby']);
-      }
     });
+
+    this.ws.subscribeToDelete();
+
+    this.ws.deletedLobby$.subscribe(signal => {
+      console.log(signal);
+      this.router.navigate(['/lobby']);
+    })
   //  //this.wsSub = //this.ws.coinFlipLobby$.subscribe(res => {
   //   if (res && res.lobbyId === this.lobbyId) {
   //     console.log("Coin flip result:", res);
@@ -103,6 +106,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     //this.wsSub?.unsubscribe();   // 🔥 stop listening
+    this.ws.unSubscribeToRoom(this.lobbyId);
     //this.ws.unsubscribeFromRoom(this.lobbyId); // optional helper in your WebSocketService
   }
 

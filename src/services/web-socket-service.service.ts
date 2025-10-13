@@ -197,7 +197,8 @@ export class WebSocketService {
 
   async subscribeToLobbies() {
     const lobbies = this.client.channels.get('lobbies');
-    await lobbies.subscribe('lobbies', (msg) => {
+    await lobbies.attach();
+    lobbies.subscribe('lobbies', (msg) => {
       console.log('Lobbies update:', msg.data);
       this.lobbiesSubject.next(msg.data);
     });
@@ -205,10 +206,27 @@ export class WebSocketService {
 
   async subscribeToRoom(lobbyId: string) {
     const room  = this.client.channels.get(`lobby-${lobbyId}`);
-    await room.subscribe("lobbyUpdate", (msg) => {
+    await room.attach();
+    room.subscribe("lobbyUpdate", (msg) => {
       console.log(`lobby-${lobbyId}:`, msg.data);
       this.roomSubject.next(msg.data);
     });
+  }
+
+  async subscribeToDelete(){
+    const deleteSignal = this.client.channels.get('lobbyDelete');
+    await deleteSignal.attach();
+    deleteSignal.subscribe("lobbyDelete", (msg) => {
+      console.log('lobbyDelete: ', msg.data)
+      this.deletedLobbySubject.next(msg.data);
+    })
+  }
+
+  unSubscribeToRoom(lobbyId: string){
+    const room  = this.client.channels.get(`lobby-${lobbyId}`);
+    room.unsubscribe();
+    const deleteSignal = this.client.channels.get('lobbyDelete');
+    deleteSignal.unsubscribe();
   }
 
 }
