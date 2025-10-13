@@ -73,7 +73,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     //   console.log(flipping)
     //   this.isFlipping = flipping;
     // })
-    this.ws.subscribeToRoom(this.lobbyId);
+    await this.ws.subscribeToRoom(this.lobbyId);
 
     this.ws.room$.subscribe((update: LobbyResponse) => {
       if (update && update.id === this.lobbyId) {
@@ -82,7 +82,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.ws.subscribeToDelete();
+    await this.ws.subscribeToDelete();
 
     this.ws.deletedLobby$.subscribe(signal => {
       console.log(signal);
