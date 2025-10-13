@@ -79,10 +79,10 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
       if (update && update.id === this.lobbyId) {
         console.log("🔄 Lobby update received:", update);
         this.lobby = update; // ✅ Apply new state to UI
+      }else{
+        this.router.navigate(['/lobby'])
       }
     });
-
-    await this.ws.subscribeToDelete();
   //  //this.wsSub = //this.ws.coinFlipLobby$.subscribe(res => {
   //   if (res && res.lobbyId === this.lobbyId) {
   //     console.log("Coin flip result:", res);
@@ -101,7 +101,6 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     //this.wsSub?.unsubscribe();   // 🔥 stop listening
-    this.ws.unSubscribeToRoom(this.lobbyId);
     //this.ws.unsubscribeFromRoom(this.lobbyId); // optional helper in your WebSocketService
   }
 

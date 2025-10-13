@@ -211,20 +211,4 @@ export class WebSocketService {
     });
   }
 
-  async subscribeToDelete(){
-    const deleteSignal = this.client.channels.get('lobbyDelete');
-    deleteSignal.subscribe("lobbyDelete", (msg) => {
-      console.log('lobbyDelete: ', msg.data)
-      this.deletedLobbySubject.next(msg.data);
-      this.router.navigate(['/lobby'])
-    })
-  }
-
-  unSubscribeToRoom(lobbyId: string){
-    const room  = this.client.channels.get(`lobby-${lobbyId}`);
-    room.unsubscribe();
-    const deleteSignal = this.client.channels.get('lobbyDelete');
-    deleteSignal.unsubscribe();
-  }
-
 }
