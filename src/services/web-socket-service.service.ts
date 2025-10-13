@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { PopupService } from './popup.service';
 import { environment } from '../environments/environment';
 import * as Ably from 'ably';
+import { LobbyResponse } from '../model/lobbyResponse';
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +19,9 @@ export class WebSocketService {
 
   private connectedSubject = new BehaviorSubject<boolean>(false);
   connected$ = this.connectedSubject.asObservable();
+
+  private activeRoomCallbacks: Map<string, { lobbyCallback: (msg: any) => void; coinFlipCallback: (msg: any) => void }> = new Map();
+
   
   private statusSubject = new BehaviorSubject<GameStatus>({
     currentPlayer: 'Player 1', phase: 'BAN SQUAD', secondsLeft: 0, currentSlot: 'Ban Squad 1'
@@ -45,10 +49,19 @@ export class WebSocketService {
   private bannedoperatorSubject = new BehaviorSubject<string[]>([]);
   bannedoperator$ = this.bannedoperatorSubject.asObservable();
 
-  private lobbiesSubject = new BehaviorSubject<any[]>([]);
+  private lobbiesSubject = new BehaviorSubject<LobbyResponse[]>([]);
   lobbies$ = this.lobbiesSubject.asObservable();
 
-  private roomSubject = new BehaviorSubject<any>([]);
+  private roomSubject = new BehaviorSubject<LobbyResponse>({
+      id: '',
+      name: '',
+      theme: 0,
+      players: {
+        0: '',
+        1: '' // ✅ allows lobby.players[0], lobby.players[1]
+      },
+      ownerToken: ''
+  });
   room$ = this.roomSubject.asObservable();
 
   private endSubject = new BehaviorSubject<{ message: string, secondsLeft: number } | null>(null);
@@ -80,34 +93,34 @@ export class WebSocketService {
     });
   }
 
-  // async waitUntilConnected(): Promise<void> {
-  //   if (this.client.connection.state === 'connected') {
-  //     return; // already connected
-  //   }
+  async waitUntilConnected(): Promise<void> {
+    if (this.client.connection.state === 'connected') {
+      return; // already connected
+    }
 
-  //   return new Promise((resolve, reject) => {
-  //     const timeout = setTimeout(() => {
-  //       reject(new Error('Ably connection timeout'));
-  //     }, 5000); // optional 5s timeout
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Ably connection timeout'));
+      }, 5000); // optional 5s timeout
 
-  //     const handleConnect = () => {
-  //       clearTimeout(timeout);
-  //       console.log('✅ waitUntilConnected: Ably connected');
-  //       this.client.connection.off('connected', handleConnect);
-  //       resolve();
-  //     };
+      const handleConnect = () => {
+        clearTimeout(timeout);
+        console.log('✅ waitUntilConnected: Ably connected');
+        this.client.connection.off('connected', handleConnect);
+        resolve();
+      };
 
-  //     const handleFailed = (err: any) => {
-  //       clearTimeout(timeout);
-  //       console.error('❌ Ably failed to connect:', err);
-  //       this.client.connection.off('failed', handleFailed);
-  //       reject(err);
-  //     };
+      const handleFailed = (err: any) => {
+        clearTimeout(timeout);
+        console.error('❌ Ably failed to connect:', err);
+        this.client.connection.off('failed', handleFailed);
+        reject(err);
+      };
 
-  //     this.client.connection.once('connected', handleConnect);
-  //     this.client.connection.once('failed', handleFailed);
-  //   });
-  // }
+      this.client.connection.once('connected', handleConnect);
+      this.client.connection.once('failed', handleFailed);
+    });
+  }
   
 
   // private handleMessage(type: string, lobbyId: string, data: any) {
@@ -180,12 +193,6 @@ export class WebSocketService {
     this.sendAction({ type: "startDraft", lobbyId });
   }
 
-  flipCoin(lobbyId: string) {
-    if (this.flippingSubject.value) return;
-    this.flippingSubject.next(true);
-    this.sendAction({ type: "flipCoin", lobbyId });
-  }
-
   getUpdate(lobbyId: string) {
     this.sendAction({ type: "getUpdate", lobbyId });
   }
@@ -204,11 +211,48 @@ export class WebSocketService {
   }
 
   async subscribeToRoom(lobbyId: string) {
-    const room  = this.client.channels.get(`lobby-${lobbyId}`);
-    room.subscribe("lobbyUpdate", (msg) => {
-      console.log(`lobby-${lobbyId}:`, msg.data);
-      this.roomSubject.next(msg.data);
-    });
+    this.unSubscribeToRoom(lobbyId); // remove old callbacks first
+
+    const room = this.client.channels.get(`lobby-${lobbyId}`);
+    const lobbyCallback = (msg: any) => {
+        console.log(`lobby-${lobbyId} update:`, msg.data);
+        this.roomSubject.next(msg.data);
+      };
+
+    const coinFlipCallback = (msg: any) => {
+      console.log(`lobby-${lobbyId} coin flip:`, msg.data);
+      this.coinFlipSubject.next(msg.data);
+    };
+      room.subscribe("lobbyUpdate", lobbyCallback);
+      room.subscribe("coinFlip", coinFlipCallback);
+
+      this.activeRoomCallbacks.set(lobbyId, {
+        lobbyCallback,
+        coinFlipCallback
+      });
+  }
+
+  // async subscribeToDelete(){
+  //   const deleteSignal = this.client.channels.get('lobbyDelete');
+  //   deleteSignal.subscribe("lobbyDelete", (msg) => {
+  //     console.log('lobbyDelete: ', msg.data)
+  //     this.deletedLobbySubject.next(msg.data);
+  //     this.router.navigate(['/lobby'])
+  //   })
+  // }
+
+  unSubscribeToRoom(lobbyId: string){
+    const room = this.client.channels.get(`lobby-${lobbyId}`);
+    const callbacks = this.activeRoomCallbacks.get(lobbyId);
+
+    if (callbacks) {
+      if (callbacks.lobbyCallback)
+        room.unsubscribe("lobbyUpdate", callbacks.lobbyCallback);
+      if (callbacks.coinFlipCallback)
+        room.unsubscribe("coinFlip", callbacks.coinFlipCallback);
+
+      this.activeRoomCallbacks.delete(lobbyId);
+    }
   }
 
 }

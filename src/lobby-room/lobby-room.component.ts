@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { JoinRequest } from '../model/joinRequest';
 import { WebSocketService } from '../services/web-socket-service.service';
 import { LobbyResponse } from '../model/lobbyResponse';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { JoinAsPlayerComponent } from '../joinasplayer/joinasplayer.component';
 import { PopupService } from '../services/popup.service';
@@ -43,6 +43,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   playerName: string | null = null;
   ownerToken: string | null = null;
 
+  private destroy$ = new Subject<void>();
+
   public themes = [
     { value: 1, label: "Phantom & Crimson Solitaire" },
     { value: 2, label: "Mizuki & Caerula Arbor" },
@@ -51,14 +53,13 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   ];
 
   async ngOnInit() {
-    // await this.ws.waitUntilConnected();
+    await this.ws.waitUntilConnected();
 
     // this.sse.connect();
 
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
     console.log(this.lobbyId)
 
-    this.loadLobby()
     // this.sse.subscribeToRoom(this.lobbyId);
 
     //this.ws.subscribeToCoinFlip(this.lobbyId);
@@ -75,14 +76,19 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     // })
     await this.ws.subscribeToRoom(this.lobbyId);
 
-    this.ws.room$.subscribe((update: LobbyResponse) => {
-      if (update && update.id === this.lobbyId) {
-        console.log("🔄 Lobby update received:", update);
-        this.lobby = update; // ✅ Apply new state to UI
-      }else{
-        this.router.navigate(['/lobby'])
-      }
-    });
+    this.ws.room$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(update => {
+        if (!update) {   // deleted lobby
+          console.log('Lobby deleted');
+          this.popUp.successPopUp("Lobby has been deleted");
+          this.router.navigate(['/lobby']);
+          return;
+        }
+        if (update.id === this.lobbyId) {
+          this.lobby = update;
+        }    
+      });
   //  //this.wsSub = //this.ws.coinFlipLobby$.subscribe(res => {
   //   if (res && res.lobbyId === this.lobbyId) {
   //     console.log("Coin flip result:", res);
@@ -90,18 +96,27 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   //   }
   //  });
 
+    this.ws.coinFlipLobby$.pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result?.lobbyId === this.lobbyId) {
+        this.popUp.coinFlipPopUp(this.lobbyId, result.result);
+      }
+    });
+
     //this.ws.draftRoom(this.lobbyId);
 
     this.playerName = sessionStorage.getItem("playerName");
     this.playerSlot = sessionStorage.getItem("playerSlot")
     this.ownerToken = sessionStorage.getItem("ownerToken");
 
+    this.loadLobby()
+
     
   }
 
   ngOnDestroy() {
-    //this.wsSub?.unsubscribe();   // 🔥 stop listening
-    //this.ws.unsubscribeFromRoom(this.lobbyId); // optional helper in your WebSocketService
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.ws.unSubscribeToRoom(this.lobbyId);
   }
 
   loadLobby() {
@@ -109,6 +124,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
 
     this.http.get<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}`).subscribe({
       next: (res) => {
+        if(res === null) {this.router.navigate(['/lobby'])};
         console.log(res)
         this.lobby = res
       },
@@ -171,6 +187,7 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
         next: res => {
           this.lobby = res;
           sessionStorage.removeItem('playerSlot');
+          sessionStorage.removeItem('playerName');
           this.playerSlot = null;
           this.playerName = null;
           console.log("Role cancelled");
@@ -224,20 +241,11 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   }
 
   flipCoin(){
-    // this.http.get<any>(`http://localhost:8080/lobby/${this.lobbyId}/flip`).subscribe(res => {
-    //   if(res){
-    //     console.log(res);
-    //   }
-    // })
-    // let dialogRef = this.dialog.open(CoinflipComponent, {
-    //   width: "360px",
-    //   height: "360px",
-    //   data: { lobbyId: this.lobbyId}
-    // })
-
-    //this.ws.flipCoin(this.lobbyId)
-
-    
+    this.http.get<any>(`${environment.apiUrl}/api/lobby/${this.lobbyId}/flip`).subscribe(res => {
+      if(res){
+        console.log(res);
+      }
+    })
   }
 
   startGame(){

@@ -45,11 +45,10 @@ export class LobbyComponent implements OnInit, OnDestroy{
   ];
 
   async ngOnInit() {
-
-    this.loadLobbies();
+    await this.ws.waitUntilConnected();
     // this.sse.connect();
 
-    // await this.ws.waitUntilConnected();
+
 
     // this.sse.subscribeToLobbies();
       
@@ -70,7 +69,11 @@ export class LobbyComponent implements OnInit, OnDestroy{
       }
     });
 
-      
+    this.loadLobbies();
+
+    sessionStorage.removeItem("playerSlot");
+    sessionStorage.removeItem("playerName");
+    sessionStorage.removeItem("ownerToken");
   }
 
   ngOnDestroy() {
