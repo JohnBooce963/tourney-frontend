@@ -69,7 +69,7 @@ export class LobbyComponent implements OnInit, OnDestroy{
       }
     });
 
-    this.loadLobbies();
+    await this.loadLobbies();
 
     sessionStorage.removeItem("playerSlot");
     sessionStorage.removeItem("playerName");
@@ -107,7 +107,7 @@ export class LobbyComponent implements OnInit, OnDestroy{
     });
   }
 
-  loadLobbies() {
+  async loadLobbies() {
     this.http.getLobbies().subscribe({
       next: (data) => {
         console.log('Lobbies loaded:', data);
