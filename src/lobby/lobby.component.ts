@@ -18,6 +18,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule} from '@angular/material/form-field';
 import { environment } from '../environments/environment.development';
+import { HttpServiceService } from '../services/http-service.service';
 
 @Component({
   selector: 'app-lobby',
@@ -28,9 +29,8 @@ import { environment } from '../environments/environment.development';
 })
 export class LobbyComponent implements OnInit, OnDestroy{
 
-  constructor(public ws: WebSocketService, public popUp: PopupService){}
+  constructor(public ws: WebSocketService, public popUp: PopupService, private http: HttpServiceService){}
 
-  private http = inject(HttpClient);
   private router = inject(Router);
 
   lobbyName: string = '';
@@ -48,7 +48,7 @@ export class LobbyComponent implements OnInit, OnDestroy{
     await this.ws.waitUntilConnected();
     // this.sse.connect();
 
-
+    this.warm()
 
     // this.sse.subscribeToLobbies();
       
@@ -86,13 +86,36 @@ export class LobbyComponent implements OnInit, OnDestroy{
     // }
   }
 
+  warm(){
+    const endpoints = [
+      '/api/lobby',
+      '/api/lobby/test-id',
+      '/api/lobby/test-id/flip',
+      '/api/db/squad/1',
+      '/api/db/operator'
+    ];
+
+    endpoints.forEach(ep =>
+      fetch(`${environment.apiUrl}${ep}`, { method: 'GET' })
+        .then(() => console.log(`Warmed ${ep}`))
+        .catch(() => console.warn(`Failed to warm ${ep}`))
+    );
+
+    this.http.warmUpLobbies().subscribe({
+      next: () => console.log('All POST endpoints warmed up!'),
+      error: err => console.log('Warm-up error', err)
+    });
+  }
+
   loadLobbies() {
-    this.http.get<any[]>(`${environment.apiUrl}/api/lobby`).subscribe({
+    this.http.getLobbies().subscribe({
       next: (data) => {
-        console.log(data)
+        console.log('Lobbies loaded:', data);
         this.lobbies = data;
       },
-      error: (err) => {this.popUp.errorPopUp('Error fetching lobbies: ' + err)}
+      error: (err) => {
+        this.popUp.errorPopUp('Error fetching lobbies: ' + err);
+      }
     });
   }
 

@@ -1,3 +1,16 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Prevent scrollbars */
+  background-color: #1a1a1a;
+}
+
+
+
 .coin-wrapper {
   display: flex;
   align-items: center;
@@ -6,6 +19,7 @@
   height: 100%;   /* take full popup height */
   width: 100%;    /* take full popup width */
   background-color: #1a1a1a;
+  overflow: hidden;
 }
 
 .coin {
@@ -87,4 +101,30 @@
   // z-index: 1; /* text on top */
 }
 
+.button-close {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  padding-bottom: 1rem;
+  flex-shrink: 0; /* keep it visible at the bottom */
+  background-color: #1a1a1a;
+}
 
+button.warn-theme {
+  background-color: #680099;
+  color: white;
+  font-weight: 600;
+}
+
+button:disabled{
+  background-color: gray;
+  color: white;
+  font-weight: 600;
+}
+
+::ng-deep .coinflip-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
+  background: #1a1a1a; /* match your dark theme background */
+  border-radius: 0;    /* remove rounded corners */
+  box-shadow: none;    /* remove default shadow */
+  overflow: hidden;    /* prevent scroll or border flicker */
+}

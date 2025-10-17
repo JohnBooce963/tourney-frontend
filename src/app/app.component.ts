@@ -13,6 +13,8 @@ import { GameStatus } from '../model/gamestatus';
 import { PlayerAction } from '../model/playerAction';
 import { DraftComponent } from '../draft/draft.component';
 import { LobbyComponent } from '../lobby/lobby.component';
+import { environment } from '../environments/environment';
+import { HttpServiceService } from '../services/http-service.service';
 
 @Component({
   selector: 'app-root',
@@ -22,9 +24,6 @@ import { LobbyComponent } from '../lobby/lobby.component';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-
-  private router = inject(Router);
-
   // navigateToDraft(){
   //   this.router.navigate(['/draft']);
   // }

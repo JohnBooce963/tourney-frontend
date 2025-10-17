@@ -17,20 +17,19 @@ export class PopupService {
   private router = Inject(Router);
 
 
-  enterNamePopUp(): string{
-    let name: string = "";
+  enterNamePopUp(): Promise<string | undefined> {
+    const dialogRef = this.dialog.open(JoinAsPlayerComponent, {
+      disableClose: true
+    });
 
-    let dialogRef = this.dialog.open(JoinAsPlayerComponent);
-
-    dialogRef.afterClosed().subscribe(result => {
-      name = result;
-    })
-
-    return name;
+    return dialogRef.afterClosed().toPromise();
   }
 
   createLobbyPopUp(): void {
-    let dialogRef = this.dialog.open(CreateLobbyComponent);
+    let dialogRef = this.dialog.open(CreateLobbyComponent, 
+    {
+      disableClose: true
+    });
 
     dialogRef.afterClosed().subscribe(result => {
       if(result){
@@ -41,7 +40,10 @@ export class PopupService {
   }
 
   alertPopUp(message: string){
-    let dialogRef = this.dialog.open(PopupComponent, { data: { type: 'warn', message: message }})
+    let dialogRef = this.dialog.open(PopupComponent, { 
+      data: { type: 'warn', message: message },
+      disableClose: true
+    })
 
     dialogRef.afterClosed().subscribe(result => {
       console.log(result);
@@ -49,7 +51,10 @@ export class PopupService {
   }
 
   errorPopUp(message: string){
-    let dialogRef = this.dialog.open(PopupComponent, { data: { type: 'error', message: message }})
+    let dialogRef = this.dialog.open(PopupComponent, { 
+      data: { type: 'error', message: message },
+      disableClose: true
+    })
 
     dialogRef.afterClosed().subscribe(result => {
       console.log(result);
@@ -57,7 +62,11 @@ export class PopupService {
   }
 
   successPopUp(message: string){
-    let dialogRef = this.dialog.open(PopupComponent, { data: { type: 'success', message: message }})
+    let dialogRef = this.dialog.open(PopupComponent, { 
+      data: { type: 'success', message: message },
+      disableClose: true
+    
+    })
 
     dialogRef.afterClosed().subscribe(result => {
       
@@ -68,7 +77,9 @@ export class PopupService {
     let dialogRef = this.dialog.open(CoinflipComponent, { 
       width: "360px",      
       height: "360px",
-      data: { lobbyId: lobbyId, result: result}
+      panelClass: "coinflip-dialog",
+      data: { lobbyId: lobbyId, result: result},
+      disableClose: true
     })
 
     dialogRef.afterClosed().subscribe(result => {

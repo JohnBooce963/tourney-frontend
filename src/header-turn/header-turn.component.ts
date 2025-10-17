@@ -3,8 +3,9 @@ import { WebSocketService } from '../services/web-socket-service.service';
 import { GameStatus } from '../model/gamestatus';
 import { interval, Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
+import { HttpServiceService } from '../services/http-service.service';
 
 @Component({
   selector: 'app-header-turn',
@@ -27,40 +28,51 @@ export class HeaderTurnComponent implements OnInit, OnDestroy {
   endMessage: string | null = null;
   endSecondsLeft: number = 0;
 
-  constructor(public ws: WebSocketService) {}
+  constructor(public ws: WebSocketService, private http: HttpServiceService, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
     // Subscribe to backend updates
-    // this.wsSub = this.ws.status$.subscribe(status => {
-    //   this.status = status;
+    const ownerToken = sessionStorage.getItem("ownerToken") ?? '';
+    const lobbyId = this.route.snapshot.paramMap.get('id')!;
 
-    //   // Restart local ticking whenever backend pushes
-    //   this.localTimerSub?.unsubscribe();
-    //   this.localTimerSub = interval(1000).subscribe(() => {
-    //     if (this.status.secondsLeft > 0) {
-    //       this.status = { ...this.status, secondsLeft: this.status.secondsLeft - 1 };
-    //     }
-    //   });
-    // });
+    this.wsSub = this.ws.status$.subscribe(status => {
+      this.status = status;
 
-    // this.endSub = this.ws.end$.subscribe(end => {
-    //   if (end) {
-    //     this.endMessage = end.message;
-    //     this.endSecondsLeft = end.secondsLeft;
+      // Restart local ticking whenever backend pushes
+      this.localTimerSub?.unsubscribe();
+      this.localTimerSub = interval(1000).subscribe(() => {
+        if (this.status.secondsLeft > 0) {
+          this.status = { ...this.status, secondsLeft: this.status.secondsLeft - 1 };
+        }
+      });
+    });
 
-    //     this.endTimerSub?.unsubscribe();
-    //     this.endTimerSub = interval(1000).subscribe(() => {
-    //       this.endSecondsLeft--;
-    //       if (this.endSecondsLeft <= 0) {
-    //         this.endTimerSub?.unsubscribe();
-    //         this.endMessage = null;
-    //         this.endSecondsLeft = 0;
-    //         sessionStorage.clear();
-    //         this.draftEnded.emit();
-    //       }
-    //     });
-    //   }
-    // });
+    this.endSub = this.ws.end$.subscribe(end => {
+      if (end) {
+        this.endMessage = end.message;
+        this.endSecondsLeft = end.secondsLeft;
+
+        if(ownerToken){
+          this.http.deleteLobby(lobbyId,ownerToken).subscribe(() => {
+            console.log("lobby deleted")
+          })
+        }
+
+        this.endTimerSub?.unsubscribe();
+        this.endTimerSub = interval(1000).subscribe(() => {
+          this.endSecondsLeft--;
+          if (this.endSecondsLeft <= 0) {
+            this.endTimerSub?.unsubscribe();
+            this.endMessage = null;
+            this.endSecondsLeft = 0;
+            sessionStorage.removeItem("ownerToken");
+            sessionStorage.removeItem("playerSlot");
+            sessionStorage.removeItem("playerName");
+            this.draftEnded.emit();
+          }
+        });
+      }
+    });
   }
 
   ngOnDestroy(): void {

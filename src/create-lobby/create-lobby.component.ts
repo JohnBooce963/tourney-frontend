@@ -13,7 +13,8 @@ import { HttpClient } from '@angular/common/http';
 import { PopupService } from '../services/popup.service';
 import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
-import { environment } from '../environments/environment.development';
+import { environment } from '../environments/environment';
+import { HttpServiceService } from '../services/http-service.service';
 
 @Component({
   selector: 'app-create-lobby',
@@ -36,7 +37,7 @@ export class CreateLobbyComponent {
   data = inject(MAT_DIALOG_DATA);
   popUp = inject(PopupService);
 
-  private http = inject(HttpClient);
+  private httpService = inject(HttpServiceService);
   private router = inject(Router);
 
   lobbyName: string = "";
@@ -61,20 +62,17 @@ export class CreateLobbyComponent {
 
     console.log(lobbyRequest);
 
-    this.http.post<LobbyResponse>(
-      `${environment.apiUrl}/api/lobby`,
-      lobbyRequest
-    ).subscribe({
-      next: (res) => {
+    this.httpService.createLobby(lobbyRequest).subscribe({
+      next: (res: LobbyResponse) => {
         console.log('Lobby created(Create Lobby):', res);
-        // this.loadLobbies(); // refresh list
         sessionStorage.setItem("ownerToken", res.ownerToken);
         this.dialogRef.close(res);
-        this.router.navigate(['/lobbyRoom', res?.id])
+        this.router.navigate(['/lobbyRoom', res?.id]);
       },
       error: (err) => {
-        this.popUp.errorPopUp('Lobby Create Failed!')
-        this.onClose();
+        console.error('Lobby creation failed', err);
+        this.popUp.errorPopUp('Lobby Create Failed!');
+        this.dialogRef.close();
       }
     });
   }

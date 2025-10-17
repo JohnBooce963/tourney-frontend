@@ -5,6 +5,7 @@ import { LobbyRoomComponent } from '../lobby-room/lobby-room.component';
 
 export const routes: Routes = [
   { path: 'draft/:id', component: DraftComponent },
+  // { path: 'draft', component: DraftComponent },
   { path: 'lobby', component: LobbyComponent },
   { path: 'lobbyRoom/:id', component: LobbyRoomComponent },
   // { path: 'login', component: LoginComponent},

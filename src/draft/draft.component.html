@@ -1,4 +1,4 @@
-<div>
+<div *ngIf="operators.length > 0 && squads.length > 0; else loading">
 <app-header-turn (draftEnded)="onDraftEnd()"></app-header-turn>
 <div class="container">
   <div class="left-panel">
@@ -12,7 +12,7 @@
     </div>
   <div class="image-grid">
     <div [class.disabled]="picked.includes(operator.char_alt_name) || bannedOps.includes(operator.char_alt_name)" class="image-container" *ngFor="let operator of filteredOperators()">
-      <img class="images" (click)="chooseOperator(operator)" [src]="'data:image/png;base64,' + operator.char_img" alt="{{ operator.char_name }}"/>
+      <img class="images" (click)="chooseOperator(operator)" [src]="operator.char_img" alt="{{ operator.char_name }}"/>
     </div>
   </div>
   </div>
@@ -26,7 +26,7 @@
     <p></p>
     <div class="image-squad-grid">
     <div [class.disabled]="bannedSquad.includes(squad.squad_name)" class="image-container" *ngFor="let squad of squads" >
-      <img class="images-squad" [src]="'data:image/png;base64,' + squad.squad_img" alt="{{ squad.squad_name }}" (click)="chooseSquad(squad)"/>
+      <img class="images-squad" [src]="squad.squad_img" alt="{{ squad.squad_name }}" (click)="chooseSquad(squad)"/>
     </div>
     </div>
     <p></p>
@@ -54,7 +54,7 @@
         
       <ng-container *ngIf="getSlotContent(slot) as content; else placeholderSlot">
         <img class="right-panel-img"
-            [src]="'data:image/png;base64,' + content.img"
+            [src]="content.img"
             [alt]="content.name" />
         <!-- <p>{{ content.name}}</p> -->
       </ng-container>
@@ -64,13 +64,13 @@
         <ng-container *ngIf="isActive(slot) && (currentOp || currentSquad); else textSlot">
           <ng-container *ngIf="getPlaceHolderContent(currentSquad) as content; else checkOp">
               <img class="right-panel-img placeholder-img"
-                  [src]="'data:image/png;base64,' + content.img"
+                  [src]="content.img"
                   [alt]="content.name" />
           </ng-container>
           <ng-template #checkOp>
             <ng-container *ngIf=" getPlaceHolderContent(currentOp) as content; else textSlot">
               <img class="right-panel-img placeholder-img"
-                  [src]="'data:image/png;base64,' + content.img"
+                  [src]="content.img"
                   [alt]="content.name" />
             </ng-container>
           </ng-template>
@@ -93,3 +93,9 @@
   </div>
 </div>
 </div>
+
+<ng-template #loading>
+  <div class="loading-screen">
+    <h1>Loading<span class="dots"></span></h1>
+  </div>
+</ng-template>

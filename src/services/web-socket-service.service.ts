@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { GameStatus } from '../model/gamestatus';
 import { PlayerAction } from '../model/playerAction';
 import { Router } from '@angular/router';
@@ -7,6 +7,8 @@ import { PopupService } from './popup.service';
 import { environment } from '../environments/environment';
 import * as Ably from 'ably';
 import { LobbyResponse } from '../model/lobbyResponse';
+import { HttpClient } from '@angular/common/http';
+import { HttpServiceService } from './http-service.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,14 +16,28 @@ import { LobbyResponse } from '../model/lobbyResponse';
 export class WebSocketService {
   private router = inject(Router);
   private popup = inject(PopupService);
+  private http = inject(HttpServiceService);
 
   private client: Ably.Realtime
 
   private connectedSubject = new BehaviorSubject<boolean>(false);
   connected$ = this.connectedSubject.asObservable();
 
-  private activeRoomCallbacks: Map<string, { lobbyCallback: (msg: any) => void; coinFlipCallback: (msg: any) => void }> = new Map();
-
+  private activeRoomCallbacks: Map<string, { 
+    lobbyCallback: (msg: any) => void; 
+    coinFlipCallback: (msg: any) => void;
+    startCallback: (msg: any) => void; 
+  }> = new Map();
+  private activeDraftCallbacks: Map<string, {
+    selectOpCallback: (msg: any) => void; 
+    selectSquadCallback: (msg: any) => void;  
+    statusCallback: (msg: any) => void; 
+    themeCallback: (msg: any) => void;
+    bannedOpCallback: (msg: any) => void; 
+    bannedSquadCallback: (msg: any) => void;  
+    pickedCallback: (msg: any) => void; 
+    endCallback: (msg: any) => void;  
+  }> = new Map();
   
   private statusSubject = new BehaviorSubject<GameStatus>({
     currentPlayer: 'Player 1', phase: 'BAN SQUAD', secondsLeft: 0, currentSlot: 'Ban Squad 1'
@@ -121,86 +137,34 @@ export class WebSocketService {
       this.client.connection.once('failed', handleFailed);
     });
   }
-  
 
-  // private handleMessage(type: string, lobbyId: string, data: any) {
-  //   switch (type) {
-  //     case 'lobbies':
-  //       this.lobbiesSubject.next(data);
-  //       break;
-  //     case 'status':
-  //       this.statusSubject.next(data);
-  //       break;
-  //     case 'picked':
-  //       this.pickedSubject.next(data);
-  //       break;
-  //     case 'bannedOps':
-  //       this.bannedoperatorSubject.next(data);
-  //       break;
-  //     case 'bannedSquad':
-  //       this.bannedsquadSubject.next(data);
-  //       break;
-  //     case 'selectedOp':
-  //       this.selectedOpSubject.next(data);
-  //       break;
-  //     case 'selectedSquad':
-  //       this.selectedSquadSubject.next(data);
-  //       break;
-  //     case 'end':
-  //       this.endSubject.next(data);
-  //       break;
-  //     case 'coinFlip':
-  //       this.coinFlipSubject.next(data);
-  //       this.popup.coinFlipPopUp(lobbyId, data.result);
-  //       setTimeout(() => this.flippingSubject.next(false), 3000);
-  //       break;
-  //     case 'draftStart':
-  //       this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-  //         this.endSubject.next(null);
-  //         this.router.navigate(['/draft', lobbyId]);
-  //       });
-  //       break;
-  //     case 'lobbyUpdate':
-  //     case 'join':
-  //     case 'cancel':
-  //       this.roomSubject.next(data);
-  //       break;
-  //     case 'lobbyDeleted':
-  //       this.deletedLobbySubject.next(data);
-  //       break;
-  //     default:
-  //       console.warn('⚠️ Unknown Ably message type:', type);
-  //   }
-  // }
-
-  private sendAction(payload: any) {
-    return fetch(`${environment.apiUrl}/api/action`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+  sendPlayerAction(lobbyId:string, action: PlayerAction) {
+    this.http.sendAction({ type: "playerAction", lobbyId, action }).subscribe({
+      next: () => {
+        console.log('✅ playerAction sent')
+      
+      },
+      error: (err) => console.error('❌ playerAction failed', err),
     });
   }
 
-  sendPlayerAction(lobbyId: string, action: PlayerAction) {
-    this.sendAction({ type: "playerAction", lobbyId, action });
-  }
-
-  sendConfirmedAction(lobbyId: string, action: PlayerAction) {
-    this.sendAction({ type: "confirmedAction", lobbyId, action });
+  sendConfirmedAction(lobbyId:string, action: PlayerAction) {
+    this.http.sendAction({ type: "confirmedAction", lobbyId, action }).subscribe({
+      next: () => console.log('✅ confirmedAction sent'),
+      error: (err) => console.error('❌ confirmedAction failed', err),
+    });
   }
 
   startDraft(lobbyId: string) {
-    this.sendAction({ type: "startDraft", lobbyId });
+    this.http.sendAction({ type: "startDraft", lobbyId }).subscribe({
+      next: () => console.log('✅ Gamerequest sent'),
+      error: (err) => console.error('❌ Gamerequest failed', err),
+    });
   }
 
   getUpdate(lobbyId: string) {
-    this.sendAction({ type: "getUpdate", lobbyId });
+    this.http.sendAction({ type: "getUpdate", lobbyId });
   }
-
-
-  // isConnected(): boolean {
-  //   return this.client?.connected ?? false;
-  // }
 
   async subscribeToLobbies() {
     const lobbies = this.client.channels.get('lobbies');
@@ -209,6 +173,112 @@ export class WebSocketService {
       this.lobbiesSubject.next(msg.data);
     });
   }
+
+  async subscribeToDraft(lobbyId: string){
+    this.unSubscribeToDraft(lobbyId);
+
+    const draft = this.client.channels.get(`draft-${lobbyId}-update`);
+
+    const selectOpCallback = (msg:any) => {
+      console.log(`room-selectOp:`, msg.data);
+      this.selectedOpSubject.next(msg.data);
+    }
+    const selectSquadCallback = (msg:any) =>{
+      console.log(`room-selectSquad:`, msg.data);
+      this.selectedSquadSubject.next(msg.data);
+    }
+    const statusCallback = (msg:any) => {
+      console.log(`room-status update:`, msg.data);
+      this.statusSubject.next(msg.data);
+    }
+    const themeCallback = (msg:any) =>{
+      console.log(`room-theme:`, msg.data);
+      this.themeSubject.next(msg.data);
+    }
+    const bannedOpCallback = (msg:any) => {
+      console.log(`room-bannedOps:`, msg.data);
+      this.bannedoperatorSubject.next(msg.data);
+    }
+    const bannedSquadCallback = (msg:any) =>{
+      console.log(`room-bannedSquad:`, msg.data);
+      this.bannedsquadSubject.next(msg.data);
+    }
+    const pickedCallback = (msg:any) => {
+      console.log(`room-picked:`, msg.data);
+      this.pickedSubject.next(msg.data);
+    }
+    const endCallback = (msg:any) =>{
+      console.log(`room-end:`, msg.data);
+      this.endSubject.next(msg.data);
+    }
+
+    // await draft.subscribe("status", (msg:any) => {
+    //   console.log(`room-status update:`, msg.data);
+    //   this.statusSubject.next(msg.data); // push to BehaviorSubject
+    // })
+
+    // await draft.subscribe("theme", (msg:any) => {
+    //   console.log(`room-theme:`, msg.data);
+    //   this.themeSubject.next(msg.data);
+    // })
+    // await draft.subscribe("selectOp", (msg:any) => {
+    //   console.log(`room-selectOp:`, msg.data);
+    //   this.selectedOpSubject.next(msg.data);
+    // })
+    // await draft.subscribe("selectSquad", (msg:any) => {
+    //   console.log(`room-selectSquad:`, msg.data);
+    //   this.selectedSquadSubject.next(msg.data);
+    // })
+    // await draft.subscribe("bannedSquad", (msg:any) => {
+    //   console.log(`room-bannedSquad:`, msg.data);
+    //   this.bannedsquadSubject.next(msg.data);
+    // })
+    // await draft.subscribe("bannedOps", (msg:any) => {
+    //   console.log(`room-bannedOps:`, msg.data);
+    //   this.bannedoperatorSubject.next(msg.data);
+    // })
+    // await draft.subscribe("picked", (msg:any) => {
+    //   console.log(`room-picked:`, msg.data);
+    //   this.pickedSubject.next(msg.data);
+    // })
+
+    // await draft.subscribe("end", (msg:any) => {
+    //   console.log(`room-end:`, msg.data);
+    //   this.endSubject.next(msg.data);
+    // })
+
+    draft.subscribe("selectOp", selectOpCallback);
+    draft.subscribe("selectSquad", selectSquadCallback);
+    draft.subscribe("status", statusCallback);
+    draft.subscribe("theme", themeCallback);
+    draft.subscribe("bannedOps", bannedOpCallback);
+    draft.subscribe("bannedSquad", bannedSquadCallback);
+    draft.subscribe("picked", pickedCallback);
+    draft.subscribe("end", endCallback);
+
+    this.activeDraftCallbacks.set(lobbyId, {
+      selectOpCallback,
+      selectSquadCallback,
+      statusCallback,
+      themeCallback,
+      bannedOpCallback,
+      bannedSquadCallback,
+      pickedCallback,
+      endCallback
+    })
+
+  }
+
+//   async subscribeToStatus() {
+//   // Remove old subscription if exists
+//     const channel = this.client.channels.get(`room-status`);
+
+//     // Subscribe to the "status" event
+//     channel.subscribe('status', (msg: any) => {
+//       console.log(`room-status update:`, msg.data);
+//       this.statusSubject.next(msg.data); // push to BehaviorSubject
+//     });
+// }
 
   async subscribeToRoom(lobbyId: string) {
     this.unSubscribeToRoom(lobbyId); // remove old callbacks first
@@ -223,12 +293,21 @@ export class WebSocketService {
       console.log(`lobby-${lobbyId} coin flip:`, msg.data);
       this.coinFlipSubject.next(msg.data);
     };
+
+    const startCallback = (msg: any) => {
+      console.log(`🚀 Game start signal received for lobby ${lobbyId}`);
+      // optional: trigger game start logic here
+      this.popup.successPopUp("Game is starting!");
+      this.router.navigate(['/draft', lobbyId]); // example route
+    };
       room.subscribe("lobbyUpdate", lobbyCallback);
       room.subscribe("coinFlip", coinFlipCallback);
+      room.subscribe("start", startCallback);
 
       this.activeRoomCallbacks.set(lobbyId, {
         lobbyCallback,
-        coinFlipCallback
+        coinFlipCallback,
+        startCallback
       });
   }
 
@@ -250,8 +329,37 @@ export class WebSocketService {
         room.unsubscribe("lobbyUpdate", callbacks.lobbyCallback);
       if (callbacks.coinFlipCallback)
         room.unsubscribe("coinFlip", callbacks.coinFlipCallback);
+      if (callbacks.startCallback)
+        room.unsubscribe("start", callbacks.startCallback);
 
       this.activeRoomCallbacks.delete(lobbyId);
+    }
+  }
+
+  unSubscribeToDraft(lobbyId: string){
+    const draft = this.client.channels.get(`draft-${lobbyId}-update`);
+    const callbacks = this.activeDraftCallbacks.get(lobbyId);
+
+    draft.unsubscribe("")
+    if (callbacks) {
+      if (callbacks.selectOpCallback)
+        draft.unsubscribe("selectOp", callbacks.selectOpCallback);
+      if (callbacks.selectSquadCallback)
+        draft.unsubscribe("selectSquad", callbacks.selectSquadCallback);
+      if (callbacks.statusCallback)
+        draft.unsubscribe("status", callbacks.statusCallback);
+      if (callbacks.themeCallback)
+        draft.unsubscribe("theme", callbacks.themeCallback);
+      if (callbacks.bannedOpCallback)
+        draft.unsubscribe("bannedOps", callbacks.bannedOpCallback);
+      if (callbacks.bannedSquadCallback)
+        draft.unsubscribe("bannedSquad", callbacks.bannedSquadCallback);
+      if (callbacks.pickedCallback)
+        draft.unsubscribe("picked", callbacks.pickedCallback);
+      if (callbacks.endCallback)
+        draft.unsubscribe("end", callbacks.endCallback);
+
+      this.activeDraftCallbacks.delete(lobbyId);
     }
   }
 

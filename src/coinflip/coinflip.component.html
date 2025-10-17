@@ -1,6 +1,10 @@
+
 <div class="coin-wrapper">
     <div class="coin">
         <div class="side-heads">Player 1</div>
         <div class="side-tails">Player 2</div>
     </div>
+</div>
+<div class="button-close">
+    <button mat-raised-button (click)="onClose()" class="warn-theme" [disabled]="flipping">Close<mat-icon matSuffix style="padding-top: 1px; color: white;">close</mat-icon></button>
 </div>

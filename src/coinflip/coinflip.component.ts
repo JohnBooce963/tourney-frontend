@@ -73,8 +73,8 @@ export class CoinflipComponent implements OnInit{
     }, 3000); // match duration
   }
 
-  // onClose(){
-  //   this.dialogRef.close(this.flipping)
-  // }
+  onClose(){
+    this.dialogRef.close(this.flipping)
+  }
 
 }

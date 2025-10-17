@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { JoinRequest } from '../model/joinRequest';
 import { WebSocketService } from '../services/web-socket-service.service';
 import { LobbyResponse } from '../model/lobbyResponse';
-import { Subject, Subscription, takeUntil } from 'rxjs';
+import { firstValueFrom, Subject, Subscription, takeUntil } from 'rxjs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { JoinAsPlayerComponent } from '../joinasplayer/joinasplayer.component';
 import { PopupService } from '../services/popup.service';
@@ -17,6 +17,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule} from '@angular/material/form-field';
 import { CoinflipComponent } from '../coinflip/coinflip.component';
 import { environment } from '../environments/environment.development';
+import { HttpServiceService } from '../services/http-service.service';
+import { operator } from '../model/operator';
+import { Squad } from '../model/squad';
 
 @Component({
   selector: 'app-lobby-room',
@@ -27,12 +30,19 @@ import { environment } from '../environments/environment.development';
 })
 export class LobbyRoomComponent implements OnInit, OnDestroy {
 
-  constructor(public ws: WebSocketService, public dialog: MatDialog, public popUp: PopupService){}
+  constructor(
+    public ws: WebSocketService, 
+    public dialog: MatDialog, 
+    public popUp: PopupService, 
+    public route: ActivatedRoute, 
+    public http: HttpServiceService,
+    public router: Router
+  ){}
 
   private wsSub?: Subscription;
-  private route = inject(ActivatedRoute);
-  private http = inject(HttpClient);
-  private router = inject(Router);
+  // private route = inject(ActivatedRoute);
+  // private http = inject(HttpClient);
+  // private router = inject(Router);
   
   isFlipping: boolean = false;
   lobbyId!: string;
@@ -42,6 +52,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
   playerSlot: string | null = null;
   playerName: string | null = null;
   ownerToken: string | null = null;
+  operators: operator[] | null = null;
+  squads: Squad[] | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -108,9 +120,8 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     this.playerSlot = sessionStorage.getItem("playerSlot")
     this.ownerToken = sessionStorage.getItem("ownerToken");
 
-    this.loadLobby()
-
-    
+    await this.loadLobby()
+    this.loadOperators();
   }
 
   ngOnDestroy() {
@@ -119,29 +130,49 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     this.ws.unSubscribeToRoom(this.lobbyId);
   }
 
-  loadLobby() {
+  async loadLobby() {
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
 
-    this.http.get<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}`).subscribe({
-      next: (res) => {
-        if(res === null) {this.router.navigate(['/lobby'])};
-        console.log(res)
-        this.lobby = res
-      },
-      error: (err) => console.error('Error loading lobby', err)
-    });
+    try {
+      const res = await firstValueFrom(this.http.getLobby(this.lobbyId));
+
+      if (!res) {
+        this.router.navigate(['/lobby']);
+        return;
+      }
+
+      console.log('Lobby loaded:', res);
+      this.lobby = res;
+
+    } catch (err) {
+      console.error('Error loading lobby', err);
+      this.router.navigate(['/lobby']); // optional redirect on failure
+    }
   }
 
-  join(slot: number) {
+
+    // this.http.get<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}`).subscribe({
+    //   next: (res) => {
+    //     if(res === null) {this.router.navigate(['/lobby'])};
+    //     console.log(res)
+    //     this.lobby = res
+    //   },
+    //   error: (err) => console.error('Error loading lobby', err)
+    // });
+  // }
+
+  async join(slot: number) {
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
     const playereSlot = sessionStorage.getItem('playerSlot');
     if (playereSlot){
       this.popUp.alertPopUp("Please cancel previous role before join!")
       return;
     } 
-    let dialogRef = this.dialog.open(JoinAsPlayerComponent);
+    let dialogRef = this.dialog.open(JoinAsPlayerComponent, {
+      disableClose: true
+    });
     
-    dialogRef.afterClosed().subscribe(playerName => {
+    dialogRef.afterClosed().subscribe(async playerName => {
       if(playerName){
       console.log(playerName);
 
@@ -151,22 +182,43 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
       };
 
       console.log(req);
-      this.http.post<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}/join`, req).subscribe({
-        next: (res) => {
-          this.lobby = res;
-          console.log(this.lobby);
 
+      try{
+          const res = await firstValueFrom(this.http.joinLobby(this.lobbyId, req));
+         console.log('Joined lobby:', res);
+
+          this.lobby = res;
           sessionStorage.setItem("playerSlot", slot.toString());
           this.playerSlot = slot.toString();
           sessionStorage.setItem("playerName", playerName);
           this.playerName = playerName;
-          // if ((res.players[1] != null) && (res.players[2] != null)) {
-          //   // Both players are in → go to draft
-          //   this.router.navigate(['/draft', this.lobbyId]);
-          // }
-        },
-        error: (err) => this.popUp.errorPopUp("Failed to join: " + (err.error?.message || "unknown error"))
-      });
+
+        // Optionally navigate to another screen
+        // if (res.players[1] && res.players[2]) {
+        //   this.router.navigate(['/draft', this.lobbyId]);
+        // }
+
+      } catch (err: any) {
+        console.error('Failed to join:', err);
+        this.popUp.errorPopUp("Failed to join: " + (err.error?.message || "unknown error"));
+      }
+  
+      // this.http.post<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}/join`, req).subscribe({
+      //   next: (res) => {
+      //     this.lobby = res;
+      //     console.log(this.lobby);
+
+      //     sessionStorage.setItem("playerSlot", slot.toString());
+      //     this.playerSlot = slot.toString();
+      //     sessionStorage.setItem("playerName", playerName);
+      //     this.playerName = playerName;
+      //     // if ((res.players[1] != null) && (res.players[2] != null)) {
+      //     //   // Both players are in → go to draft
+      //     //   this.router.navigate(['/draft', this.lobbyId]);
+      //     // }
+      //   },
+      //   error: (err) => this.popUp.errorPopUp("Failed to join: " + (err.error?.message || "unknown error"))
+      // });
       }
     })
   }
@@ -176,51 +228,49 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
     return theme ? theme.label : "Unknow Theme"
   }
 
-  cancelRole() {
+  async cancelRole() {
     const slot = sessionStorage.getItem('playerSlot');
     if (!slot) return;
 
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
-
-    this.http.post<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}/cancel/${slot}`, {})
-      .subscribe({
-        next: res => {
-          this.lobby = res;
-          sessionStorage.removeItem('playerSlot');
-          sessionStorage.removeItem('playerName');
-          this.playerSlot = null;
-          this.playerName = null;
-          console.log("Role cancelled");
-        },
-        error: err => this.popUp.errorPopUp("Failed to cancel role: " + (err.error?.message || "unknown error"))
-      });
+    try {
+        const res = await firstValueFrom(this.http.cancelRole(this.lobbyId, slot));
+        this.lobby = res;
+        sessionStorage.removeItem('playerSlot');
+        sessionStorage.removeItem('playerName');
+        this.playerSlot = null;
+        this.playerName = null;
+        console.log("Role cancelled");
+      } catch (err: any) {
+        this.popUp.errorPopUp("Failed to cancel role: " + (err.error?.message || "unknown error"));
+      }
   }
 
-  leaveLobby() {
+  async leaveLobby() {
     const playerName = sessionStorage.getItem('playerName');
     const token = sessionStorage.getItem("ownerToken");
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
 
     if (token){
       this.popUp.alertPopUp("You can not leave the because you are the lobby owner")
-    }else if(playerName && !token){
-      this.http.post<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}/leave`, { playerName })
-        .subscribe({
-          next: res => {
-            this.lobby = res;
-            sessionStorage.clear();
-            this.router.navigate(['/lobby']); // back to lobby list
-          },
-          error: err => this.popUp.errorPopUp("Failed to leave lobby: " + (err.error?.message || "unknown error"))
-        });
-    }else{
-      this.router.navigate(['/lobby'])
-    };
+    }
+    if (playerName && !token) {
+      try {
+        const res = await firstValueFrom(this.http.leaveLobby(this.lobbyId, playerName));
+        this.lobby = res;
+        sessionStorage.clear();
+        this.router.navigate(['/lobby']);
+      } catch (err: any) {
+        this.popUp.errorPopUp("Failed to leave lobby: " + (err.error?.message || "unknown error"));
+      }
+    } else {
+      this.router.navigate(['/lobby']);
+    }
 
 
   }
 
-  deleteLobby() {
+  async deleteLobby() {
     const token = sessionStorage.getItem("ownerToken");
     if (!token) {
       this.popUp.alertPopUp("You are not the lobby owner")
@@ -229,27 +279,35 @@ export class LobbyRoomComponent implements OnInit, OnDestroy {
 
     this.lobbyId = this.route.snapshot.paramMap.get('id')!;
 
-    this.http.post(`${environment.apiUrl}/api/lobby/${this.lobbyId}/delete`, { ownerToken: token })
-      .subscribe({
-        next: () => {
-          this.popUp.successPopUp("Lobby Deleted!")
-          sessionStorage.removeItem("ownerToken");
-          this.router.navigate(['/lobby']);
-        },
-        error: err => this.popUp.errorPopUp("Failed to delete: " + (err.error?.error || "unknown error"))
-      });
+    try {
+      await firstValueFrom(this.http.deleteLobby(this.lobbyId, token));
+      this.popUp.successPopUp("Lobby Deleted!");
+      sessionStorage.removeItem('ownerToken');
+      this.router.navigate(['/lobby']);
+    } catch (err: any) {
+      this.popUp.errorPopUp("Failed to delete: " + (err.error?.error || "unknown error"));
+    }
   }
 
-  flipCoin(){
-    this.http.get<any>(`${environment.apiUrl}/api/lobby/${this.lobbyId}/flip`).subscribe(res => {
-      if(res){
-        console.log(res);
-      }
-    })
+  async flipCoin(){
+    this.lobbyId = this.route.snapshot.paramMap.get('id')!;
+    try {
+      const res = await firstValueFrom(this.http.flipCoin(this.lobbyId));
+      console.log('Coin flip result:', res);
+    } catch (err) {
+      console.error('Failed to flip coin', err);
+    }
   }
 
   startGame(){
-    //this.ws.startDraft(this.lobbyId);
+    this.ws.startDraft(this.lobbyId);
+  }
+
+  loadOperators() {
+    this.http.fetchOperators().subscribe({
+      next: ops => this.operators = ops,
+      error: err => this.popUp.errorPopUp('Error loading operators: ' + err)
+    });
   }
 
 }

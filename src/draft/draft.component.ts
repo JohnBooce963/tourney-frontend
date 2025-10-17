@@ -15,6 +15,8 @@ import { DraftItem } from '../model/draftItem';
 import { LobbyResponse } from '../model/lobbyResponse';
 import { PopupService } from '../services/popup.service';
 import { environment } from '../environments/environment.development';
+import { HttpServiceService } from '../services/http-service.service';
+import { CacheService } from '../services/cache.service';
 
 @Component({
   selector: 'app-draft',
@@ -26,9 +28,15 @@ import { environment } from '../environments/environment.development';
 export class DraftComponent implements OnInit, OnDestroy{
 
 
-  constructor(public ws : WebSocketService, private route: ActivatedRoute, public popUp: PopupService){}
+  constructor(
+    public ws : WebSocketService, 
+    private route: ActivatedRoute, 
+    public popUp: PopupService, 
+    public router: Router,
+    public http: HttpServiceService,
+    public cacheService: CacheService
+  ){}
 
-  private router = inject(Router);
   private subs: Subscription[] = [];
 
   slots = [
@@ -39,12 +47,6 @@ export class DraftComponent implements OnInit, OnDestroy{
       ];
 
   activeSlot: string | null = '';
-
-  
-
-  private http = inject(HttpClient);
-
-  private url = "http://localhost:8080";
 
   public operators: operator[] = [];
   public squads: Squad[] = [];
@@ -84,32 +86,47 @@ export class DraftComponent implements OnInit, OnDestroy{
     // await this.ws.waitUntilConnected();   // ⏳ wait here
     //this.ws.subscribeToDrafting(this.lobbyId);
 
-    this.playerSlot = Number(sessionStorage.getItem("playerSlot"))
-    this.playerName = sessionStorage.getItem("playerName") || "Guest";
+    // this.playerSlot = Number(sessionStorage.getItem("playerSlot"))
+    // this.playerName = sessionStorage.getItem("playerName") || "Guest";
 
-    console.log(this.playerSlot, this.playerName)
+    await this.ws.subscribeToDraft(this.lobbyId);
+
+    // await this.ws.subscribeToStatus();
     // this.startDraft().subscribe({
     //   next: () => console.log("Draft started!"),
     //   error: (err) => console.error("Failed to start draft", err)
     // });
+    this.loadDraftRoom()
+
     this.fetchOperators();
+    this.loadSquad();
+
+    this.playerName = sessionStorage.getItem("playerName") ?? '';
+    this.playerSlot = Number(sessionStorage.getItem("playerSlot")) ?? 0;
+
+    console.log(this.playerSlot, this.playerName)
+
+    // if(this.operators.length > 0 && this.squads.length > 0){
+
+
+    // }
 
    this.subs.push(
-      //this.ws.status$.subscribe(status => {
-      //   this.gameState = status;
-      //   this.activeSlot = status.currentSlot;
-      // }),
+      this.ws.status$.subscribe(status => {
+        this.gameState = status;
+        this.activeSlot = status.currentSlot;
+      }),
 
-      //this.ws.theme$.subscribe(theme => {
+      // this.ws.theme$.subscribe(theme => {
       //     this.fetchSquad(theme)
       // }),
 
-      //this.ws.messages$.subscribe(state => this.playerAction = state),
-      //this.ws.picked$.subscribe(picked => this.picked = picked),
-      //this.ws.bannedoperator$.subscribe(banOps => this.bannedOps = banOps),
-      //this.ws.bannedsquad$.subscribe(banSquad => this.bannedSquad = banSquad),
-      //this.ws.selectedOp$.subscribe(currentOp => this.currentOp = currentOp),
-      //this.ws.selectedSquad$.subscribe(currentSquad => this.currentSquad = currentSquad)
+      this.ws.messages$.subscribe(state => this.playerAction = state),
+      this.ws.picked$.subscribe(picked => this.picked = picked),
+      this.ws.bannedoperator$.subscribe(banOps => this.bannedOps = banOps),
+      this.ws.bannedsquad$.subscribe(banSquad => this.bannedSquad = banSquad),
+      this.ws.selectedOp$.subscribe(currentOp => this.currentOp = currentOp),
+      this.ws.selectedSquad$.subscribe(currentSquad => this.currentSquad = currentSquad)
     )
 
   }
@@ -117,15 +134,18 @@ export class DraftComponent implements OnInit, OnDestroy{
   ngOnDestroy() {
     this.subs.forEach(s => s.unsubscribe());
     this.subs = [];
+    this.ws.unSubscribeToDraft(this.lobbyId);
     //this.ws.unsubscribeFromDrafting(this.lobbyId); // 👈 optional helper
   }
 
-  startDraft(): Observable<void> {
-    return this.http.post<void>(`${environment.apiUrl}/start`, {});
-  }
+  // startDraft(){
+  //   this.http.post<void>(`${environment.apiUrl}/api/action`, { type: "startDraft", action: ""}).subscribe((res) => {
+  //     console.log("Game Start!")
+  //   });
+  // }
 
   fetchOperators(): void {
-    this.http.get<operator[]>(`${environment.apiUrl}/Operator`)
+    this.http.fetchOperators()
       .subscribe({
         next: (data) => {
           this.operators = data;
@@ -137,33 +157,73 @@ export class DraftComponent implements OnInit, OnDestroy{
       });
   }
 
-  fetchOperator(name: string): void {
-    this.http.get<operator>(`${environment.apiUrl}/${name}`).subscribe(op => {
-      this.operator = op;
-      console.log("Operator: " ,this.operator)
-    });
-
+  loadDraftRoom(){
+    // this.http.get<LobbyResponse>(`${environment.apiUrl}/api/lobby/${this.lobbyId}`).subscribe({ 
+    //   next: (res) => {
+    //   console.log("Draft Room: " ,res)
+    //   this.lobby = res
+    //   this.http.get<Squad[]>(`${environment.apiUrl}/api/db/squad/${res.theme}`).subscribe({
+    //     next: (data) => {
+    //       this.squads = data;
+    //       console.log('Squad:', this.squads);
+    //     },
+    //     error: (err) => {
+    //       console.error('Error fetching operators', err);
+    //     }
+    //   });
+    // },
+    //   error: (err) => {
+    //     console.error("Failed to get Draft Room")
+    //   }
+    // })
   }
 
-  fetchSquad(theme: number): void {
-    this.http.get<Squad[]>(`${environment.apiUrl}/Squad/${theme}`)
-    .subscribe({
-        next: (data) => {
-          this.squads = data;
-          console.log('Squads:', this.squads);
-        },
-        error: (err) => {
-          console.error('Error fetching operators', err);
-        }
-      });
+  // fetchOperator(name: string): void {
+  //   this.http.get<operator>(`${environment.apiUrl}/${name}`).subscribe(op => {
+  //     this.operator = op;
+  //     console.log("Operator: " ,this.operator)
+  //   });
 
-  }
+  // }
+
+  // fetchSquad(theme: number): void {
+  //   this.http.fetchSquad(theme)
+  //   .subscribe({
+  //       next: (data) => {
+  //         this.squads = data;
+  //         console.log('Squads:', this.squads);
+  //       },
+  //       error: (err) => {
+  //         console.error('Error fetching operators', err);
+  //       }
+  //     });
+  // }
 
   filteredOperators(): operator[] {
   return this.operators.filter(op =>
     op.char_alt_name.toLowerCase().includes(this.searchText.toLowerCase()) || op.char_name.toLowerCase().includes(this.searchText.toLowerCase())
   );
   }
+
+  // loadOperatorFromCache() {
+  //   const cachedOps = this.cacheService.getOperators();
+  //   if (cachedOps) {
+  //     this.operators = cachedOps;
+  //     console.log('Loaded operators from cache:', this.operators);
+  //   }
+  // }
+
+  loadSquad() {
+    this.http.loadLobbyWithCache(this.lobbyId).subscribe({
+      next: ({ lobby, squads }) => {
+        this.lobby = lobby;
+        this.squads = squads;
+        console.log('Lobby & squads loaded', lobby, squads);
+      },
+      error: err => this.popUp.errorPopUp('Error loading lobby: ' + err)
+    });
+  }
+
 
   isActive(slot: string): boolean {
     return this.activeSlot === slot
@@ -174,7 +234,7 @@ export class DraftComponent implements OnInit, OnDestroy{
 
     console.log(this.gameState)
 
-    if (this.gameState?.currentPlayer === `Player ${this.playerSlot}`) {
+    if (this.gameState?.currentPlayer === `Player ${this.playerSlot + 1}`) {
       if(this.selectedOperator){
         const action: PlayerAction = {
           player: this.gameState?.currentPlayer ?? '',
@@ -182,8 +242,8 @@ export class DraftComponent implements OnInit, OnDestroy{
           character: this.selectedOperator.char_alt_name,
           squad: ''
         };
-        //this.ws.sendConfirmedAction(this.lobbyId, action);
-          
+        this.ws.sendConfirmedAction(this.lobbyId, action);
+        // this.ws.sendConfirmedAction(action) 
       }else if(this.selectedSquad){
         const action: PlayerAction = {
           player: this.gameState?.currentPlayer ?? '',
@@ -191,8 +251,8 @@ export class DraftComponent implements OnInit, OnDestroy{
           character: '',
           squad: this.selectedSquad.squad_name
         };
-
-        //this.ws.sendConfirmedAction(this.lobbyId, action);
+        this.ws.sendConfirmedAction(this.lobbyId, action);
+        // this.ws.sendConfirmedAction( action);
       }
     }
 
@@ -201,9 +261,12 @@ export class DraftComponent implements OnInit, OnDestroy{
   }
 
   chooseSquad(squad: Squad){
+    
     if(this.gameState?.phase === 'BAN' || this.gameState?.phase === 'PICK'){
       this.popUp.alertPopUp("This is Ban/Pick phase. Please Select Operator to be Banned/Picked!")
-    }else if(this.gameState?.currentPlayer === `Player ${this.playerSlot}`){
+    }else 
+      if(this.gameState?.currentPlayer === `Player ${this.playerSlot + 1}`)
+    {
       this.selectedSquad = squad;
       this.selectedOperator = null;
 
@@ -214,14 +277,16 @@ export class DraftComponent implements OnInit, OnDestroy{
         squad: squad.squad_name
       };
 
-      //this.ws.sendPlayerAction(this.lobbyId, action);
+      this.ws.sendPlayerAction(this.lobbyId, action);
     }
   }
 
   chooseOperator(operator: operator) {
     if(this.gameState?.phase === 'BAN SQUAD'){
       this.popUp.alertPopUp("This is Ban Squad phase. Please Select Squad to be Banned!")
-    }else if(this.gameState?.currentPlayer === `Player ${this.playerSlot}`){
+    }else 
+    if(this.gameState?.currentPlayer === `Player ${this.playerSlot + 1}`)
+    {
       this.selectedOperator = operator;
       this.selectedSquad = null;
 
@@ -231,7 +296,7 @@ export class DraftComponent implements OnInit, OnDestroy{
         character: operator.char_alt_name,
         squad: ''
       };
-      //this.ws.sendPlayerAction(this.lobbyId, action);
+      this.ws.sendPlayerAction(this.lobbyId, action);
     }
   }
 
