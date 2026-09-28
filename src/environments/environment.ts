@@ -1,4 +1,4 @@
-// Production backend. Replace with your deployed backend URL (e.g. the Railway service domain).
+// Production backend (Railway).
 export const environment = {
-  apiUrl: 'https://tourney-backend-production.up.railway.app',
+  apiUrl: 'https://tourney-backend-re-production.up.railway.app',
 };
