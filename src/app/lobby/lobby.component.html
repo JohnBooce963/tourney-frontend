@@ -1,0 +1,33 @@
+@if (gone()) {
+  <div class="center-state">
+    <span class="icon big">search_off</span>
+    <h2>Lobby not found</h2>
+    <p>It may have been deleted, finished a while ago, or the server restarted.</p>
+    <a class="btn" routerLink="/"><span class="icon">arrow_back</span> Back to lobbies</a>
+  </div>
+} @else {
+  @if (lobby(); as l) {
+    @if (!live()) {
+      <div class="reconnecting"><div class="spinner"></div> Connection lost — reconnecting…</div>
+    }
+    @if (l.status === 'waiting') {
+      <app-room [lobby]="l" />
+    } @else {
+      <app-draft [lobby]="l" />
+    }
+  } @else {
+    <div class="center-state"><div class="spinner"></div> Loading lobby…</div>
+  }
+}
+
+@if (coin(); as c) {
+  <button class="coin-overlay" (click)="coin.set(null)" aria-label="Close coin flip">
+    <div class="coin" [class.tails]="c.result === 1">
+      <div class="face p1">P1</div>
+      <div class="face p2">P2</div>
+    </div>
+    <p class="coin-result">
+      <span [class]="c.result === 0 ? 'p1-text' : 'p2-text'">Player {{ c.result + 1 }}</span> wins the toss
+    </p>
+  </button>
+}

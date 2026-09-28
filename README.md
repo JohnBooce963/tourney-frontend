@@ -1,27 +1,27 @@
-# Frontend
+# Tourney frontend
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.7.
+Angular 17 client for the Tourney ban/pick draft. Talks to the backend over HTTP + Server-Sent Events.
 
-## Development server
+## Run locally
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+```bash
+npm install
+npm start    # http://localhost:4200, uses http://localhost:3000 as the API
+```
 
-## Code scaffolding
+Start the backend first (`tourney-backend-re/backend`, `npm run dev`).
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Configure
 
-## Build
+- `src/environments/environment.development.ts` → API for `ng serve`
+- `src/environments/environment.ts` → API for production builds. **Set this to your deployed backend URL.**
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+## Deploy (Vercel)
 
-## Running unit tests
+Import the repo; the Angular preset works as-is (`ng build`, output `dist/frontend/browser`).
+Deep links like `/lobby/<id>` are served by Vercel's SPA fallback.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## How identity works
 
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+No accounts. Creating a lobby returns an owner token, and taking a seat returns a player token; both are kept in
+`localStorage` and sent with each action. The server checks them, so only the seated player can act on their turn.

@@ -1,0 +1,144 @@
+<header class="turnbar panel" [class.p1]="turn()?.player === 0" [class.p2]="turn()?.player === 1">
+  @if (turn(); as t) {
+    <div class="progress-block">
+      <span class="eyebrow">Step {{ draft().step + 1 }} / {{ steps }}</span>
+      <div class="progress"><span [style.width.%]="(draft().step / steps) * 100"></span></div>
+    </div>
+    <div class="now">
+      <span class="who">{{ lobby().players[t.player] }}</span>
+      <span class="what">{{ phaseLabel[t.phase] }}</span>
+      @if (myTurn()) { <span class="your-turn">Your turn</span> }
+    </div>
+    <div class="timer" [class.low]="remaining() <= 10" aria-live="off">{{ mmss(remaining()) }}</div>
+  } @else {
+    <div class="finished">
+      <span class="icon">flag</span>
+      <div>
+        <h2>Draft complete</h2>
+        <p class="muted">{{ lobby().name }} · {{ lobby().players[0] }} vs {{ lobby().players[1] }}</p>
+        <p class="closes">Lobby closes in <strong>{{ mmss(closesIn()) }}</strong></p>
+      </div>
+    </div>
+    <div class="finished-actions">
+      @if (isOwner()) {
+        <button class="btn ghost danger" (click)="close()"><span class="icon">close</span> Close now</button>
+      }
+      <a class="btn" routerLink="/"><span class="icon">arrow_back</span> Back to lobbies</a>
+    </div>
+  }
+</header>
+
+<div class="layout">
+  @for (p of [0, 1]; track p) {
+    <aside class="board panel p{{ p + 1 }}" [class.active]="turn()?.player === p">
+      <header class="board-head">
+        <span class="team">Player {{ p + 1 }}</span>
+        <strong class="name">{{ lobby().players[p] }}</strong>
+        @if (mySlot() === p) { <span class="you">You</span> }
+      </header>
+
+      <p class="group">Squad ban</p>
+      <ng-container *ngTemplateOutlet="row; context: { phase: 'squad', i: p }" />
+
+      <p class="group">Bans</p>
+      <div class="bans">
+        @for (i of board[p].bans; track i) {
+          @if (slotContent('ban', i); as c) {
+            <div class="slot tile-slot" [class.active]="c.active" [class.filled]="c.item && !c.preview">
+              @if (c.item; as it) {
+                <img [src]="it.img" [alt]="it.name" [class.preview]="c.preview">
+                <span class="cap">{{ it.name }}</span>
+              } @else {
+                <span class="num">Ban {{ i + 1 }}</span>
+              }
+            </div>
+          }
+        }
+      </div>
+
+      <p class="group">Picks</p>
+      <div class="picks">
+        @for (i of board[p].picks; track i) {
+          <ng-container *ngTemplateOutlet="row; context: { phase: 'pick', i }" />
+        }
+      </div>
+    </aside>
+  }
+
+  <section class="pool panel">
+    @if (turn()?.phase === 'squad') {
+      <header class="pool-head">
+        <h3>Squads</h3>
+        <p class="muted">Each player bans one squad.</p>
+      </header>
+      <div class="grid squads">
+        @for (s of squads(); track s.id) {
+          <button class="tile {{ itemState().get(s.id) ?? '' }}" [class.chosen]="shown() === s.id"
+                  [disabled]="!myTurn() || itemState().has(s.id)" (click)="choose(s.id)" (dblclick)="confirm()">
+            <img [src]="api.img('squad', s.id)" alt="" loading="lazy" width="96" height="96">
+            <span class="label">{{ s.name }}</span>
+          </button>
+        }
+      </div>
+    } @else {
+      <header class="pool-head">
+        <input class="input search" type="search" placeholder="Search operators…" aria-label="Search operators"
+               [ngModel]="search()" (ngModelChange)="search.set($event)">
+        <div class="chips" role="group" aria-label="Filter by class">
+          <button class="chip" [class.on]="!cls()" (click)="cls.set('')">All</button>
+          @for (c of classes; track c) {
+            <button class="chip" [class.on]="cls() === c" (click)="cls.set(c)">{{ c }}</button>
+          }
+        </div>
+      </header>
+      <div class="grid ops">
+        @for (o of filteredOps(); track o.id) {
+          <button class="tile {{ itemState().get(o.id) ?? '' }}" [class.chosen]="shown() === o.id"
+                  [disabled]="!myTurn() || itemState().has(o.id)" (click)="choose(o.id)" (dblclick)="confirm()"
+                  [title]="o.name + ' · ' + o.cls">
+            <img [src]="api.img('op', o.id)" alt="" loading="lazy" width="72" height="72">
+            <span class="label">{{ o.name }}</span>
+          </button>
+        } @empty {
+          <p class="muted empty">{{ ops().length ? 'No operators match.' : 'Loading operators…' }}</p>
+        }
+      </div>
+    }
+
+    @if (turn(); as t) {
+      <footer class="confirm-bar" [class.mine]="myTurn()">
+        @if (myTurn()) {
+          @if (item(t.phase, myChoice()); as it) {
+            <img [src]="it.img" alt="">
+            <div class="choice"><span class="eyebrow">{{ phaseLabel[t.phase] }}</span><strong>{{ it.name }}</strong></div>
+          } @else {
+            <p class="muted">Select {{ t.phase === 'squad' ? 'a squad' : 'an operator' }} to {{ t.phase === 'pick' ? 'pick' : 'ban' }} — double-click to lock in fast.</p>
+          }
+          <button class="btn primary" [disabled]="!myChoice() || pending()" (click)="confirm()">
+            <span class="icon">lock</span> Lock in
+          </button>
+        } @else {
+          <p class="muted">
+            <span class="icon">visibility</span>
+            {{ mySlot() === null ? 'Spectating' : 'Waiting for your opponent' }} — {{ lobby().players[t.player] }} is choosing.
+            If time runs out, their highlighted choice (or a random one) is locked in.
+          </p>
+        }
+      </footer>
+    }
+  </section>
+</div>
+
+<ng-template #row let-phase="phase" let-i="i">
+  @if (slotContent(phase, i); as c) {
+    <div class="slot row-slot" [class.active]="c.active" [class.filled]="c.item && !c.preview" [class.squad]="phase === 'squad'">
+      @if (c.item; as it) {
+        <img [src]="it.img" [alt]="it.name" [class.preview]="c.preview">
+        <span class="cap">{{ it.name }}</span>
+      } @else {
+        <span class="ph"></span>
+        <span class="num">{{ phase === 'squad' ? 'Squad ban' : 'Pick ' + (i + 1) }}</span>
+      }
+    </div>
+  }
+</ng-template>

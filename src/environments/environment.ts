@@ -1,5 +1,4 @@
+// Production backend. Replace with your deployed backend URL (e.g. the Railway service domain).
 export const environment = {
-    apiUrl : 'https://tourney-backend-re.vercel.app',
-    tokenUrl: 'https://tourney-backend-re.vercel.app/api',
-    wsKey: '4PXB0g.UG7TyQ:plqdic7_UvXxQm_-wZ8RXV9XRDLRZOmIJjKoaGTzwYk'
+  apiUrl: 'https://tourney-backend-production.up.railway.app',
 };
