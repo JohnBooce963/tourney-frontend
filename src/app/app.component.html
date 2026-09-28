@@ -1,6 +1,20 @@
+<header class="topbar">
+  <a class="brand" routerLink="/">
+    <span class="mark" aria-hidden="true"></span>
+    <span class="word">Tourney</span>
+    <span class="sub">IS Draft</span>
+  </a>
+</header>
 
-<div class="content-type">
-<!-- <a routerLink="draft">Lobby</a> -->
-<router-outlet></router-outlet>
+<main class="page">
+  <router-outlet />
+</main>
+
+<div class="toasts" aria-live="polite">
+  @for (t of toasts.list(); track t.id) {
+    <button class="toast" [class.error]="t.kind === 'error'" (click)="toasts.dismiss(t.id)">
+      <span class="icon">{{ t.kind === 'error' ? 'error' : 'check_circle' }}</span>
+      {{ t.text }}
+    </button>
+  }
 </div>
-

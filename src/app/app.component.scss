@@ -1,9 +1,80 @@
-.content-type {
-    min-height: 100vh; 
-    display: block;
-    padding:  1rem;
-    background-color: #1a1a1a;
-    font-family: "Rajdhani", sans-serif;
-    color: white;
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding: 0 max(16px, calc((100vw - 1320px) / 2));
+  border-bottom: 1px solid var(--line);
+  background: rgba(10, 11, 14, 0.82);
+  backdrop-filter: blur(10px);
 }
 
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.mark {
+  align-self: center;
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  transform: rotate(45deg);
+  box-shadow: 0 0 18px rgba(244, 197, 66, 0.55);
+}
+
+.word {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sub {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+.toasts {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  z-index: 100;
+  display: grid;
+  gap: 8px;
+  width: min(420px, calc(100vw - 32px));
+  transform: translateX(-50%);
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-2);
+  border-left: 3px solid var(--ok);
+  border-radius: 8px;
+  background: var(--panel-2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  text-align: left;
+  cursor: pointer;
+  animation: rise 0.2s ease-out;
+  .icon { color: var(--ok); }
+  &.error { border-left-color: var(--ban); .icon { color: var(--ban); } }
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } }

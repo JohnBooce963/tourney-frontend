@@ -1,0 +1,57 @@
+<section class="banner" [style.background-image]="'url(' + theme().art + ')'">
+  <div class="banner-body">
+    <p class="eyebrow">{{ theme().name }}</p>
+    <h1>{{ lobby().name }}</h1>
+    <p class="muted">
+      Waiting for players ·
+      @if (mySlot() !== null) { You are Player {{ mySlot()! + 1 }} }
+      @else if (isOwner()) { You created this lobby }
+      @else { You are spectating }
+    </p>
+  </div>
+  <button class="btn ghost" (click)="copyLink()"><span class="icon">link</span> Copy invite link</button>
+</section>
+
+<section class="panel you">
+  <label class="field">
+    <span>Your name</span>
+    <input class="input" [ngModel]="api.playerName()" (ngModelChange)="api.setName($event)" maxlength="24" placeholder="Guest" [disabled]="mySlot() !== null">
+  </label>
+  <p class="muted hint">
+    @if (mySlot() === null) { Take a seat below to play, or stay here to spectate. }
+    @else { You're seated. Leave your seat to change your name. }
+  </p>
+</section>
+
+<section class="seats">
+  @for (i of [0, 1]; track i) {
+    <div class="seat p{{ i + 1 }}" [class.filled]="lobby().players[i]" [class.mine]="mySlot() === i">
+      <span class="seat-label">Player {{ i + 1 }}</span>
+      <div class="avatar">
+        @if (lobby().players[i]; as name) { {{ name.charAt(0).toUpperCase() }} }
+        @else { <span class="icon">person_add</span> }
+      </div>
+      <strong class="seat-name">{{ lobby().players[i] ?? 'Open seat' }}</strong>
+      @if (mySlot() === i) {
+        <button class="btn ghost sm" (click)="leave()" [disabled]="busy()">Leave seat</button>
+      } @else if (!lobby().players[i]) {
+        <button class="btn sm" (click)="join(i)" [disabled]="busy() || mySlot() !== null">Take seat</button>
+      } @else {
+        <span class="ready"><span class="icon">check</span> Ready</span>
+      }
+    </div>
+    @if (i === 0) { <div class="versus">VS</div> }
+  }
+</section>
+
+<section class="actions">
+  @if (isMember()) {
+    <button class="btn ghost" (click)="flip()" [disabled]="busy()"><span class="icon">toll</span> Flip coin</button>
+    <button class="btn primary" (click)="start()" [disabled]="busy() || !full()">
+      <span class="icon">play_arrow</span> {{ full() ? 'Start draft' : 'Waiting for 2 players' }}
+    </button>
+  }
+  @if (isOwner()) {
+    <button class="btn ghost danger" (click)="remove()" [disabled]="busy()"><span class="icon">delete</span> Delete lobby</button>
+  }
+</section>

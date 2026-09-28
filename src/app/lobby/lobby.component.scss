@@ -1,0 +1,69 @@
+.big { font-size: 48px; color: var(--faint); }
+
+.reconnecting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 10px;
+  border: 1px solid rgba(244, 197, 66, 0.3);
+  border-radius: 8px;
+  background: rgba(244, 197, 66, 0.08);
+  color: var(--accent);
+  .spinner { width: 16px; height: 16px; border-width: 2px; }
+}
+
+.coin-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 28px;
+  width: 100%;
+  border: 0;
+  background: rgba(5, 6, 8, 0.82);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  animation: fade 0.2s ease-out;
+  perspective: 900px;
+}
+
+.coin {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  transform-style: preserve-3d;
+  animation: flip-heads 2.2s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  &.tails { animation-name: flip-tails; }
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 700;
+  color: #fff;
+  &.p1 { background: radial-gradient(circle at 35% 30%, #8cc8ff, var(--p1) 55%, #1d5f9e); box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.18); }
+  &.p2 { background: radial-gradient(circle at 35% 30%, #ffa3ab, var(--p2) 55%, #9e2330); box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.18); transform: rotateY(180deg); }
+}
+
+.coin-result {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fade 0.3s 2.2s ease-out forwards;
+}
+
+@keyframes flip-heads { 0% { transform: translateY(0) rotateY(0); } 40% { transform: translateY(-90px) rotateY(900deg); } 100% { transform: translateY(0) rotateY(1800deg); } }
+@keyframes flip-tails { 0% { transform: translateY(0) rotateY(0); } 40% { transform: translateY(-90px) rotateY(990deg); } 100% { transform: translateY(0) rotateY(1980deg); } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }

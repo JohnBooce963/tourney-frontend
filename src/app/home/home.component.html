@@ -1,0 +1,68 @@
+<section class="hero">
+  <p class="eyebrow">Integrated Strategies</p>
+  <h1>Ban &amp; pick, head to head.</h1>
+  <p class="lede">Open a lobby, send the link to your opponent, and draft squads and operators live. Spectators follow every move.</p>
+</section>
+
+<div class="layout">
+  <form class="panel create" (ngSubmit)="create()">
+    <h2>New lobby</h2>
+
+    <label class="field">
+      <span>Lobby name</span>
+      <input class="input" name="name" [(ngModel)]="name" maxlength="40" required placeholder="e.g. Weekly Cup · Round 1" autocomplete="off">
+    </label>
+
+    <fieldset class="field">
+      <legend>Theme</legend>
+      <div class="themes">
+        @for (t of themes; track t.id) {
+          <label class="theme" [class.on]="theme === t.id">
+            <input type="radio" name="theme" [value]="t.id" [(ngModel)]="theme">
+            <img [src]="t.art" alt="" loading="lazy" width="320" height="180">
+            <span>{{ t.name }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <button class="btn primary block" [disabled]="!name.trim() || busy()">
+      <span class="icon">add</span> Create lobby
+    </button>
+  </form>
+
+  <section class="list">
+    <header class="list-head">
+      <h2>Lobbies</h2>
+      <span class="badge" [class.offline]="!live()">{{ live() ? 'Live' : 'Reconnecting' }}</span>
+    </header>
+
+    @if (lobbies(); as list) {
+      @for (l of list; track l.id) {
+        <a class="lobby" [routerLink]="['/lobby', l.id]">
+          <img class="art" [src]="themeOf(l.theme).art" alt="" loading="lazy">
+          <div class="info">
+            <div class="meta">
+              <span class="badge {{ l.status }}">{{ statusLabel[l.status] }}</span>
+              <span class="theme-name">{{ themeOf(l.theme).name }}</span>
+            </div>
+            <h3>{{ l.name }}</h3>
+            <p class="vs">
+              <span class="p1-text">{{ l.players[0] ?? 'Open seat' }}</span>
+              <span class="muted">vs</span>
+              <span class="p2-text">{{ l.players[1] ?? 'Open seat' }}</span>
+            </p>
+          </div>
+          <span class="go">{{ l.status === 'waiting' ? 'Join' : 'Watch' }}<span class="icon">arrow_forward</span></span>
+        </a>
+      } @empty {
+        <div class="empty panel">
+          <span class="icon">swords</span>
+          <p>No lobbies yet. Create one and share the link.</p>
+        </div>
+      }
+    } @else {
+      <div class="center-state"><div class="spinner"></div></div>
+    }
+  </section>
+</div>

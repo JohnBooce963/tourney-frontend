@@ -1,14 +1,9 @@
 import { Routes } from '@angular/router';
-import { LobbyComponent } from '../lobby/lobby.component';
-import { DraftComponent } from '../draft/draft.component';
-import { LobbyRoomComponent } from '../lobby-room/lobby-room.component';
+import { HomeComponent } from './home/home.component';
+import { LobbyComponent } from './lobby/lobby.component';
 
 export const routes: Routes = [
-  { path: 'draft/:id', component: DraftComponent },
-  // { path: 'draft', component: DraftComponent },
-  { path: 'lobby', component: LobbyComponent },
-  { path: 'lobbyRoom/:id', component: LobbyRoomComponent },
-  // { path: 'login', component: LoginComponent},
-  // { path: 'signup', component: SignupComponent},
-  { path: '', redirectTo: 'lobby', pathMatch: 'full'}
+  { path: '', component: HomeComponent, title: 'Tourney · IS Draft' },
+  { path: 'lobby/:id', component: LobbyComponent, title: 'Lobby · Tourney' },
+  { path: '**', redirectTo: '' },
 ];
